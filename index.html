@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TeamVote — Idea Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: #2a2a33;
+    --accent: #c8f060;
+    --accent2: #60c8f0;
+    --danger: #f06060;
+    --text: #f0f0f4;
+    --muted: #7a7a8c;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  /* ── Noise overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── Layout ── */
+  #app { position: relative; z-index: 1; }
+
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(13,13,15,0.85);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; }
+  .logo span { color: var(--accent); }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .user-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .user-badge .role-tag {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    background: var(--accent); color: #0d0d0f;
+    padding: 2px 7px; border-radius: 999px;
+  }
+  .user-badge .role-tag.member { background: var(--accent2); }
+
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    padding: 8px 18px; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    transition: all .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: #0d0d0f; }
+  .btn-primary:hover { background: #d8ff70; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-danger:hover { background: var(--danger); color: #fff; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+
+  /* ── Views ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── Auth screen ── */
+  #auth-view {
+    display: none;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 0;
+  }
+  #auth-view.active { display: flex; }
+
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .auth-card h2 { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+  .auth-card p { color: var(--muted); margin-bottom: 28px; font-size: 14px; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 7px; }
+  .field input, .field textarea, .field select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 80px; }
+  .field select option { background: var(--surface2); }
+
+  .error-msg { color: var(--danger); font-size: 13px; margin-top: 10px; }
+
+  /* ── Main layout ── */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 61px);
+  }
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .sidebar-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--muted);
+    padding: 4px 12px; margin-bottom: 6px; margin-top: 10px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px;
+    cursor: pointer; font-size: 14px; font-weight: 500;
+    color: var(--muted); transition: all .12s;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--surface2); color: var(--accent); }
+  .nav-item .nav-icon { font-size: 17px; }
+
+  .content { padding: 32px; }
+  .content-header { margin-bottom: 28px; }
+  .content-header h1 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; }
+  .content-header p { color: var(--muted); font-size: 14px; margin-top: 5px; }
+
+  /* ── Idea cards ── */
+  .ideas-grid { display: flex; flex-direction: column; gap: 14px; }
+  .idea-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    display: flex; gap: 20px;
+    align-items: flex-start;
+    transition: border-color .15s, transform .15s;
+    position: relative;
+  }
+  .idea-card:hover { border-color: #3a3a48; transform: translateY(-1px); }
+
+  .vote-col {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    min-width: 52px;
+  }
+  .vote-btn {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .vote-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: rgba(200,240,96,.08); }
+  .vote-btn.voted { border-color: var(--accent); color: var(--accent); background: rgba(200,240,96,.12); }
+  .vote-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .vote-count { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text); }
+
+  .idea-body { flex: 1; }
+  .idea-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 7px; }
+  .idea-desc { color: var(--muted); font-size: 14px; line-height: 1.65; margin-bottom: 14px; }
+  .idea-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .meta-author {
+    font-size: 12px; color: var(--muted);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .meta-author .author-title {
+    color: var(--accent2); font-weight: 600;
+  }
+  .meta-date { font-size: 12px; color: var(--muted); }
+  .own-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+    background: rgba(200,240,96,.12); color: var(--accent);
+    padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(200,240,96,.25);
+  }
+  .voter-list { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  .idea-actions { display: flex; gap: 8px; margin-left: auto; align-self: flex-start; }
+
+  /* ── Post idea form ── */
+  .post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 640px;
+  }
+
+  /* ── Admin panel ── */
+  .admin-section { margin-bottom: 36px; }
+  .admin-section h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+
+  .member-list { display: flex; flex-direction: column; gap: 10px; }
+  .member-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .member-avatar {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .member-info { flex: 1; }
+  .member-name { font-weight: 600; font-size: 14px; }
+  .member-title { font-size: 12px; color: var(--accent2); }
+  .member-actions { display: flex; gap: 8px; }
+
+  .add-member-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: 12px; align-items: end;
+    max-width: 640px;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 14px; opacity: .5; }
+  .empty-state p { font-size: 15px; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 22px;
+    font-size: 14px; z-index: 9999;
+    opacity: 0; transition: opacity .25s;
+    pointer-events: none; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+  #toast.ok { border-color: var(--accent); color: var(--accent); }
+  #toast.err { border-color: var(--danger); color: var(--danger); }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.65); z-index: 500;
+    display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px; max-width: 420px; width: 90%;
+  }
+  .modal h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 10px; }
+  .modal p { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .sidebar { flex-direction: row; border-right: none; border-bottom: 1px solid var(--border); padding: 10px 12px; overflow-x: auto; }
+    .sidebar-label { display: none; }
+    .content { padding: 20px 16px; }
+    .add-member-form { grid-template-columns: 1fr; }
+    .header { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- AUTH VIEW -->
+  <div id="auth-view" class="view">
+    <div class="auth-card">
+      <h2>Welcome Back 👋</h2>
+      <p id="auth-subtitle">Enter your username to continue.</p>
+      <div class="field">
+        <label>Username</label>
+        <input id="auth-username" type="text" placeholder="e.g. ahmed" autocomplete="off"/>
+      </div>
+      <div id="auth-title-field" class="field" style="display:none;">
+        <label>Your Title <span style="color:var(--muted);font-weight:400">(shown next to your name)</span></label>
+        <input id="auth-title" type="text" placeholder="e.g. Lead Designer, Backend Dev…"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="authSubmit()">Continue →</button>
+      <p class="error-msg" id="auth-error"></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="main-view" class="view">
+    <header class="header">
+      <div class="logo">Team<span>Vote</span></div>
+      <div class="header-right">
+        <div class="user-badge">
+          <span id="header-username"></span>
+          <span id="header-role" class="role-tag member">Member</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <nav class="sidebar">
+        <div class="sidebar-label">Board</div>
+        <div class="nav-item active" data-tab="ideas" onclick="switchTab('ideas')">
+          <span class="nav-icon">💡</span> Ideas
+        </div>
+        <div class="nav-item" data-tab="post" onclick="switchTab('post')">
+          <span class="nav-icon">✏️</span> Post Idea
+        </div>
+        <div class="sidebar-label">Account</div>
+        <div class="nav-item" data-tab="profile" onclick="switchTab('profile')">
+          <span class="nav-icon">👤</span> My Profile
+        </div>
+        <div class="nav-item" id="admin-nav" data-tab="admin" onclick="switchTab('admin')" style="display:none;">
+          <span class="nav-icon">⚙️</span> Admin
+        </div>
+      </nav>
+
+      <main class="content">
+
+        <!-- IDEAS TAB -->
+        <div id="tab-ideas" class="view active">
+          <div class="content-header">
+            <h1>All Ideas</h1>
+            <p id="ideas-subtitle">Browse and vote on your team's ideas.</p>
+          </div>
+          <div id="ideas-list" class="ideas-grid"></div>
+        </div>
+
+        <!-- POST TAB -->
+        <div id="tab-post" class="view">
+          <div class="content-header">
+            <h1>Post an Idea</h1>
+            <p>Share something worth exploring with the team.</p>
+          </div>
+          <div class="post-card">
+            <div class="field">
+              <label>Title</label>
+              <input id="idea-title" type="text" placeholder="Give your idea a catchy title"/>
+            </div>
+            <div class="field">
+              <label>Description</label>
+              <textarea id="idea-desc" placeholder="Describe your idea in detail…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="postIdea()">Post Idea →</button>
+          </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div id="tab-profile" class="view">
+          <div class="content-header">
+            <h1>My Profile</h1>
+            <p>Update your display title here.</p>
+          </div>
+          <div class="post-card">
+            <div class="field">
+              <label>Username</label>
+              <input id="profile-username" type="text" disabled style="opacity:.5;cursor:not-allowed"/>
+            </div>
+            <div class="field">
+              <label>Your Title</label>
+              <input id="profile-title" type="text" placeholder="e.g. Product Designer"/>
+            </div>
+            <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+          </div>
+        </div>
+
+        <!-- ADMIN TAB -->
+        <div id="tab-admin" class="view">
+          <div class="content-header">
+            <h1>Admin Panel</h1>
+            <p>Manage team members and app settings.</p>
+          </div>
+
+          <div class="admin-section">
+            <h3>Team Members</h3>
+            <div id="member-list" class="member-list"></div>
+          </div>
+
+          <div class="admin-section">
+            <h3>Add Member</h3>
+            <div class="add-member-form">
+              <div class="field" style="margin:0">
+                <label>Username</label>
+                <input id="new-member-username" type="text" placeholder="username"/>
+              </div>
+              <div class="field" style="margin:0">
+                <label>Title</label>
+                <input id="new-member-title" type="text" placeholder="role / title"/>
+              </div>
+              <button class="btn btn-primary" onclick="addMember()" style="height:42px">Add</button>
+            </div>
+            <p style="color:var(--muted);font-size:13px;margin-top:10px">⚠️ Max 7 members total (including admin).</p>
+          </div>
+
+          <div class="admin-section">
+            <h3>Danger Zone</h3>
+            <button class="btn btn-danger" onclick="confirmClearIdeas()">🗑️ Clear All Ideas</button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Are you sure?</h3>
+    <p id="modal-body">This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════
+//  DATA LAYER  (localStorage)
+// ════════════════════════════════════════════
+const STORE = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem('tv_'+k)); } catch { return null; } },
+  set: (k,v) => localStorage.setItem('tv_'+k, JSON.stringify(v)),
+};
+
+function getMembers() { return STORE.get('members') || []; }
+function setMembers(m) { STORE.set('members', m); }
+function getIdeas()   { return STORE.get('ideas') || []; }
+function setIdeas(i)  { STORE.set('ideas', i); }
+function getSession() { return STORE.get('session'); }
+function setSession(s){ STORE.set('session', s); }
+function clearSession(){ localStorage.removeItem('tv_session'); }
+
+function currentUser() {
+  const s = getSession();
+  if (!s) return null;
+  return getMembers().find(m => m.username === s.username) || null;
+}
+
+// ── Bootstrap: create admin if first run ──
+function bootstrap() {
+  if (!STORE.get('bootstrapped')) {
+    setMembers([{
+      username: 'admin',
+      title: 'Project Admin',
+      role: 'admin',
+    }]);
+    STORE.set('bootstrapped', true);
+  }
+}
+
+// ════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════
+let _authMode = 'login'; // 'login' | 'settitle'
+let _pendingUsername = '';
+
+function showAuth() {
+  document.getElementById('auth-view').classList.add('active');
+  document.getElementById('main-view').classList.remove('active');
+  document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-username').value = '';
+  document.getElementById('auth-title').value = '';
+  document.getElementById('auth-title-field').style.display = 'none';
+  document.getElementById('auth-subtitle').textContent = 'Enter your username to continue.';
+  _authMode = 'login';
+}
+
+function showMain() {
+  document.getElementById('auth-view').classList.remove('active');
+  document.getElementById('main-view').classList.add('active');
+  renderHeader();
+  switchTab('ideas');
+  if (currentUser()?.role === 'admin') {
+    document.getElementById('admin-nav').style.display = 'flex';
+  }
+}
+
+function authSubmit() {
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+
+  if (_authMode === 'login') {
+    const uname = document.getElementById('auth-username').value.trim().toLowerCase();
+    if (!uname) { err.textContent = 'Please enter your username.'; return; }
+
+    const members = getMembers();
+    const member = members.find(m => m.username === uname);
+
+    if (!member) {
+      err.textContent = 'Username not found. Ask your admin to add you first.';
+      return;
+    }
+
+    // If no title set yet, ask for one
+    if (!member.title) {
+      _pendingUsername = uname;
+      _authMode = 'settitle';
+      document.getElementById('auth-subtitle').textContent = `Welcome, ${uname}! Set your display title.`;
+      document.getElementById('auth-title-field').style.display = 'block';
+      document.getElementById('auth-username').disabled = true;
+      return;
+    }
+
+    setSession({ username: uname });
+    showMain();
+  } else {
+    // setting title
+    const title = document.getElementById('auth-title').value.trim();
+    if (!title) { err.textContent = 'Please enter a title.'; return; }
+
+    const members = getMembers();
+    const idx = members.findIndex(m => m.username === _pendingUsername);
+    members[idx].title = title;
+    setMembers(members);
+    setSession({ username: _pendingUsername });
+    showMain();
+  }
+}
+
+function logout() {
+  clearSession();
+  showAuth();
+}
+
+// ════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
+  document.querySelectorAll('#main-view .view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+
+  if (tab === 'ideas') renderIdeas();
+  if (tab === 'admin') renderAdmin();
+  if (tab === 'profile') renderProfile();
+}
+
+function renderHeader() {
+  const u = currentUser();
+  if (!u) return;
+  document.getElementById('header-username').textContent = `${u.username} · ${u.title}`;
+  const rt = document.getElementById('header-role');
+  rt.textContent = u.role === 'admin' ? 'Admin' : 'Member';
+  rt.className = 'role-tag ' + (u.role === 'admin' ? '' : 'member');
+}
+
+// ════════════════════════════════════════════
+//  IDEAS
+// ════════════════════════════════════════════
+function renderIdeas() {
+  const me = currentUser();
+  const ideas = getIdeas().slice().sort((a,b) => b.votes.length - a.votes.length);
+  const container = document.getElementById('ideas-list');
+
+  if (!ideas.length) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">💭</div><p>No ideas yet — be the first to post one!</p></div>`;
+    return;
+  }
+
+  container.innerHTML = ideas.map(idea => {
+    const isOwn = idea.author === me.username;
+    const hasVoted = idea.votes.includes(me.username);
+    const authorMember = getMembers().find(m => m.username === idea.author);
+    const authorTitle = authorMember?.title || '';
+    const date = new Date(idea.createdAt).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+
+    return `
+    <div class="idea-card" id="idea-${idea.id}">
+      <div class="vote-col">
+        <button class="vote-btn ${hasVoted ? 'voted' : ''}"
+          ${isOwn ? 'disabled title="You cannot vote on your own idea"' : ''}
+          onclick="toggleVote('${idea.id}')">
+          ${hasVoted ? '▲' : '△'}
+        </button>
+        <span class="vote-count">${idea.votes.length}</span>
+      </div>
+      <div class="idea-body">
+        <div class="idea-title">${escHtml(idea.title)}</div>
+        <div class="idea-desc">${escHtml(idea.description)}</div>
+        <div class="idea-meta">
+          <span class="meta-author">by <strong>${escHtml(idea.author)}</strong>
+            ${authorTitle ? `<span class="author-title">· ${escHtml(authorTitle)}</span>` : ''}
+          </span>
+          <span class="meta-date">${date}</span>
+          ${isOwn ? '<span class="own-badge">your idea</span>' : ''}
+        </div>
+        ${idea.votes.length ? `<div class="voter-list">Voted by: ${idea.votes.join(', ')}</div>` : ''}
+      </div>
+      ${(isOwn || me.role === 'admin') ? `
+      <div class="idea-actions">
+        <button class="btn btn-ghost btn-sm" onclick="confirmDeleteIdea('${idea.id}')">🗑️</button>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function postIdea() {
+  const title = document.getElementById('idea-title').value.trim();
+  const desc  = document.getElementById('idea-desc').value.trim();
+  if (!title) { toast('Please add a title.', 'err'); return; }
+  if (!desc)  { toast('Please add a description.', 'err'); return; }
+
+  const me = currentUser();
+  const ideas = getIdeas();
+  ideas.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    title, description: desc,
+    author: me.username,
+    votes: [],
+    createdAt: Date.now(),
+  });
+  setIdeas(ideas);
+  document.getElementById('idea-title').value = '';
+  document.getElementById('idea-desc').value = '';
+  toast('Idea posted! 🎉', 'ok');
+  switchTab('ideas');
+}
+
+function toggleVote(ideaId) {
+  const me = currentUser();
+  const ideas = getIdeas();
+  const idea = ideas.find(i => i.id === ideaId);
+  if (!idea) return;
+  if (idea.author === me.username) { toast("You can't vote on your own idea.", 'err'); return; }
+
+  const idx = idea.votes.indexOf(me.username);
+  if (idx === -1) {
+    idea.votes.push(me.username);
+    toast('Vote cast! ▲', 'ok');
+  } else {
+    idea.votes.splice(idx, 1);
+    toast('Vote removed.', '');
+  }
+  setIdeas(ideas);
+  renderIdeas();
+}
+
+function confirmDeleteIdea(id) {
+  showModal(
+    'Delete this idea?',
+    'This will permanently remove the idea and all its votes.',
+    () => { deleteIdea(id); closeModal(); }
+  );
+}
+
+function deleteIdea(id) {
+  setIdeas(getIdeas().filter(i => i.id !== id));
+  renderIdeas();
+  toast('Idea deleted.', '');
+}
+
+function confirmClearIdeas() {
+  showModal(
+    'Clear ALL ideas?',
+    'This will permanently delete every idea and all votes. This cannot be undone.',
+    () => { setIdeas([]); renderIdeas(); closeModal(); toast('All ideas cleared.', ''); }
+  );
+}
+
+// ════════════════════════════════════════════
+//  PROFILE
+// ════════════════════════════════════════════
+function renderProfile() {
+  const u = currentUser();
+  document.getElementById('profile-username').value = u.username;
+  document.getElementById('profile-title').value = u.title || '';
+}
+
+function saveProfile() {
+  const title = document.getElementById('profile-title').value.trim();
+  if (!title) { toast('Title cannot be empty.', 'err'); return; }
+  const me = currentUser();
+  const members = getMembers();
+  const idx = members.findIndex(m => m.username === me.username);
+  members[idx].title = title;
+  setMembers(members);
+  renderHeader();
+  toast('Profile updated! ✓', 'ok');
+}
+
+// ════════════════════════════════════════════
+//  ADMIN
+// ════════════════════════════════════════════
+function renderAdmin() {
+  const me = currentUser();
+  if (me?.role !== 'admin') return;
+  const members = getMembers();
+  const list = document.getElementById('member-list');
+
+  const emojis = ['🧑‍💻','👩‍🎨','🧑‍🔬','👨‍💼','🧑‍🚀','👩‍💻','🧑‍🎤'];
+
+  list.innerHTML = members.map((m, i) => `
+    <div class="member-row">
+      <div class="member-avatar">${emojis[i % emojis.length]}</div>
+      <div class="member-info">
+        <div class="member-name">${escHtml(m.username)} ${m.role === 'admin' ? '⭐' : ''}</div>
+        <div class="member-title">${escHtml(m.title || 'No title set')}</div>
+      </div>
+      <div class="member-actions">
+        ${m.username !== me.username ? `
+          ${m.role !== 'admin' ? `<button class="btn btn-ghost btn-sm" onclick="confirmMakeAdmin('${m.username}')">Make Admin</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="confirmRemoveMember('${m.username}')">Remove</button>
+        ` : '<span style="font-size:12px;color:var(--muted)">You</span>'}
+      </div>
+    </div>
+  `).join('');
+}
+
+function addMember() {
+  const username = document.getElementById('new-member-username').value.trim().toLowerCase();
+  const title    = document.getElementById('new-member-title').value.trim();
+  if (!username) { toast('Enter a username.', 'err'); return; }
+
+  const members = getMembers();
+  if (members.length >= 7) { toast('Max 7 members reached!', 'err'); return; }
+  if (members.find(m => m.username === username)) { toast('Username already exists.', 'err'); return; }
+
+  members.push({ username, title: title || '', role: 'member' });
+  setMembers(members);
+  document.getElementById('new-member-username').value = '';
+  document.getElementById('new-member-title').value = '';
+  renderAdmin();
+  toast(`${username} added! ✓`, 'ok');
+}
+
+function confirmMakeAdmin(username) {
+  showModal(
+    `Transfer admin to ${username}?`,
+    `You will become a regular member. ${username} will be the new admin.`,
+    () => { makeAdmin(username); closeModal(); }
+  );
+}
+
+function makeAdmin(username) {
+  const members = getMembers();
+  const me = currentUser();
+  members.forEach(m => {
+    if (m.username === me.username) m.role = 'member';
+    if (m.username === username)   m.role = 'admin';
+  });
+  setMembers(members);
+  renderHeader();
+  renderAdmin();
+  document.getElementById('admin-nav').style.display = 'none';
+  switchTab('ideas');
+  toast(`${username} is now Admin.`, 'ok');
+}
+
+function confirmRemoveMember(username) {
+  showModal(
+    `Remove ${username}?`,
+    'This will remove them from the team. Their ideas and votes will remain.',
+    () => { removeMember(username); closeModal(); }
+  );
+}
+
+function removeMember(username) {
+  setMembers(getMembers().filter(m => m.username !== username));
+  renderAdmin();
+  toast(`${username} removed.`, '');
+}
+
+// ════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let _toastTimer;
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+let _modalCallback = null;
+function showModal(title, body, onConfirm) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent  = body;
+  _modalCallback = onConfirm;
+  document.getElementById('modal-confirm').onclick = _modalCallback;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  _modalCallback = null;
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+bootstrap();
+const sess = getSession();
+if (sess && getMembers().find(m => m.username === sess.username)) {
+  showMain();
+} else {
+  clearSession();
+  showAuth();
+}
+
+// Enter key on auth
+document.getElementById('auth-username').addEventListener('keydown', e => { if(e.key==='Enter') authSubmit(); });
+document.getElementById('auth-title').addEventListener('keydown',    e => { if(e.key==='Enter') authSubmit(); });
+</script>
+</body>
+</html>
