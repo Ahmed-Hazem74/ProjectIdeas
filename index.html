@@ -48,10 +48,21 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 .btn-xs{padding:4px 10px;font-size:11px;border-radius:6px}
 .btn-icon{width:32px;height:32px;padding:0;border-radius:8px;font-size:14px;background:transparent;color:var(--text3);border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
 .btn-icon:hover{background:var(--danger-dim);color:var(--danger);border-color:rgba(255,87,87,0.25)}
+.btn:disabled,.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important}
 
 /* ── VIEWS ── */
 .view{display:none}
 .view.active{display:block}
+
+/* ── LOADING SCREEN ── */
+#loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:9999}
+#loading-screen.hidden{display:none}
+.loading-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;letter-spacing:-.5px}
+.loading-logo em{color:var(--accent);font-style:normal}
+.loading-bar{width:200px;height:3px;background:var(--surface3);border-radius:99px;overflow:hidden}
+.loading-bar-fill{height:100%;background:var(--accent);border-radius:99px;animation:loadbar 1.5s ease-in-out infinite}
+@keyframes loadbar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+.loading-text{font-size:12px;color:var(--text3)}
 
 /* ── AUTH ── */
 #auth-view{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column}
@@ -82,6 +93,13 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 .role-pill{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:4px 10px;border-radius:999px;background:var(--accent);color:#080910}
 .role-pill.member{background:var(--blue)}
 
+/* sync indicator */
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);transition:background .3s}
+.sync-dot.syncing{background:#ffcc00;animation:pulse .8s ease infinite}
+.sync-dot.ok{background:var(--accent)}
+.sync-dot.err{background:var(--danger)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
 /* ── LAYOUT ── */
 .main-layout{display:grid;grid-template-columns:var(--sw) 1fr;min-height:calc(100vh - 58px)}
 
@@ -102,6 +120,7 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 .page-header{margin-bottom:24px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
 .ph-left h1{font-family:'Bricolage Grotesque',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.5px}
 .ph-left p{color:var(--text2);font-size:13px;margin-top:3px}
+.ph-right{display:flex;align-items:center;gap:8px}
 
 /* ── STATS ── */
 .stats-row{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
@@ -185,6 +204,12 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 .dz-text h4{font-weight:600;font-size:14px}
 .dz-text p{font-size:12px;color:var(--text2);margin-top:2px}
 
+/* setup card */
+.setup-card{background:var(--surface);border:1px solid rgba(168,255,87,.2);border-radius:var(--r);padding:28px;max-width:600px;margin-bottom:24px}
+.setup-card h3{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.setup-card p{color:var(--text2);font-size:13px;line-height:1.6;margin-bottom:16px}
+.setup-card code{background:var(--surface3);padding:2px 6px;border-radius:4px;font-size:12px;color:var(--accent)}
+
 /* ── MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
@@ -215,7 +240,13 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 </style>
 </head>
 <body>
-<div id="app">
+<div id="loading-screen">
+  <div class="loading-logo">Team<em>Vote</em></div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  <div class="loading-text">Loading shared data…</div>
+</div>
+
+<div id="app" style="display:none">
 
 <!-- AUTH -->
 <div id="auth-view" class="view">
@@ -232,7 +263,7 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
         <label>Your Title</label>
         <input id="auth-title" type="text" placeholder="e.g. Lead Designer, Backend Dev…"/>
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="authSubmit()">Continue →</button>
+      <button class="btn btn-primary" id="auth-btn" style="width:100%;justify-content:center;margin-top:4px" onclick="authSubmit()">Continue →</button>
       <p class="error-msg" id="auth-error"></p>
     </div>
   </div>
@@ -243,6 +274,7 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
   <header class="header">
     <div class="logo">Team<em>Vote</em></div>
     <div class="header-right">
+      <div class="sync-dot" id="sync-dot" title="Sync status"></div>
       <div class="user-chip">
         <div style="line-height:1.2">
           <div id="hdr-name" class="uc-name"></div>
@@ -282,6 +314,9 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
             <h1 class="display">All Ideas</h1>
             <p>Vote on your team's ideas — you can't vote on your own.</p>
           </div>
+          <div class="ph-right">
+            <button class="btn btn-ghost btn-sm" onclick="refreshData(true)">↻ Refresh</button>
+          </div>
         </div>
         <div id="stats-row" class="stats-row"></div>
         <div id="ideas-list" class="ideas-grid"></div>
@@ -304,7 +339,7 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
             <label>Description</label>
             <textarea id="idea-desc" placeholder="Describe your idea in detail. What problem does it solve?"></textarea>
           </div>
-          <button class="btn btn-primary" onclick="postIdea()">Submit Idea →</button>
+          <button class="btn btn-primary" id="post-btn" onclick="postIdea()">Submit Idea →</button>
         </div>
       </div>
 
@@ -343,6 +378,19 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
             <h1 class="display">Admin Panel</h1>
             <p>Manage team members and the board.</p>
           </div>
+        </div>
+
+        <div id="setup-info" class="setup-card" style="display:none">
+          <h3>⚡ First-time Setup</h3>
+          <p>This app uses <strong>JSONBin.io</strong> as a free shared database so all 7 team members see the same data. You need to create a free bin and paste the Bin ID below. This is a one-time setup.</p>
+          <p><strong>Steps:</strong> Go to <a href="https://jsonbin.io" target="_blank" style="color:var(--accent)">jsonbin.io</a> → Sign up free → Create a new bin with this initial JSON:</p>
+          <pre style="background:var(--surface3);padding:12px;border-radius:8px;font-size:11px;margin:10px 0;overflow-x:auto;color:var(--text2)">{"members":[{"username":"admin","title":"Project Admin","role":"admin"}],"ideas":[]}</pre>
+          <p>Then copy the Bin ID (looks like <code>64abc1234…</code>) and your Master Key, and paste below.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px">
+            <div class="field" style="margin:0"><label>Bin ID</label><input id="cfg-binid" type="text" placeholder="64abc123…"/></div>
+            <div class="field" style="margin:0"><label>Master Key (X-Master-Key)</label><input id="cfg-key" type="text" placeholder="$2b$10$…"/></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:14px" onclick="saveConfig()">Save & Connect</button>
         </div>
 
         <div class="admin-sec">
@@ -393,110 +441,264 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 </div><!-- /app -->
 
 <script>
-// ── STORE ──
-const S={get:k=>{try{return JSON.parse(localStorage.getItem('tv3_'+k))}catch{return null}},set:(k,v)=>localStorage.setItem('tv3_'+k,JSON.stringify(v)),del:k=>localStorage.removeItem('tv3_'+k)};
-const getMembers=()=>S.get('members')||[];const setMembers=m=>S.set('members',m);
-const getIdeas=()=>S.get('ideas')||[];const setIdeas=i=>S.set('ideas',i);
-const getSess=()=>S.get('sess');const setSess=s=>S.set('sess',s);const clrSess=()=>S.del('sess');
-function currentUser(){const s=getSess();return s?getMembers().find(m=>m.username===s.username)||null:null}
-function bootstrap(){if(!S.get('boot3')){setMembers([{username:'admin',title:'Project Admin',role:'admin'}]);S.set('boot3',1)}}
+// ══════════════════════════════════════════════════════════════
+//  STORAGE STRATEGY
+//  Primary:  JSONBin.io (free, shared, 10k req/mo)
+//  Fallback: localStorage (single-user mode, warns user)
+// ══════════════════════════════════════════════════════════════
 
-// ── AUTH ──
-let aMode='login',pUser='';
-function showAuth(){
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem('tv_'+k)) } catch { return null } },
+  set: (k,v) => localStorage.setItem('tv_'+k, JSON.stringify(v)),
+  del: k => localStorage.removeItem('tv_'+k)
+};
+
+// In-memory state
+let DB = { members: [], ideas: [] };
+let SESSION = null; // { username }
+let useRemote = false;
+
+// JSONBin config (stored in localStorage, admin sets it once)
+function getCfg() { return LS.get('cfg') || { binId:'', key:'' }; }
+function hasCfg() { const c=getCfg(); return !!(c.binId && c.key); }
+
+// ── REMOTE DB (JSONBin) ──────────────────────────────────────
+async function remoteLoad() {
+  const { binId, key } = getCfg();
+  const r = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+    headers: { 'X-Master-Key': key }
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const j = await r.json();
+  return j.record;
+}
+
+async function remoteSave(data) {
+  const { binId, key } = getCfg();
+  const r = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type':'application/json', 'X-Master-Key': key },
+    body: JSON.stringify(data)
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+}
+
+// ── LOCAL FALLBACK ───────────────────────────────────────────
+function localLoad() {
+  return {
+    members: LS.get('members') || [{ username:'admin', title:'Project Admin', role:'admin' }],
+    ideas: LS.get('ideas') || []
+  };
+}
+
+function localSave(data) {
+  LS.set('members', data.members);
+  LS.set('ideas', data.ideas);
+}
+
+// ── SYNC INDICATOR ──────────────────────────────────────────
+function setSyncState(state) {
+  const dot = document.getElementById('sync-dot');
+  if (!dot) return;
+  dot.className = 'sync-dot ' + state;
+  dot.title = state === 'ok' ? 'Data synced' : state === 'syncing' ? 'Syncing…' : state === 'err' ? 'Sync error — showing local data' : 'Local mode';
+}
+
+// ── LOAD ALL DATA ────────────────────────────────────────────
+async function loadData() {
+  if (hasCfg()) {
+    setSyncState('syncing');
+    try {
+      DB = await remoteLoad();
+      useRemote = true;
+      setSyncState('ok');
+    } catch(e) {
+      console.warn('Remote load failed, using local:', e);
+      DB = localLoad();
+      useRemote = false;
+      setSyncState('err');
+    }
+  } else {
+    DB = localLoad();
+    useRemote = false;
+    setSyncState('');
+  }
+  // ensure structure
+  if (!DB.members) DB.members = [];
+  if (!DB.ideas) DB.ideas = [];
+  // bootstrap admin if empty
+  if (DB.members.length === 0) {
+    DB.members = [{ username:'admin', title:'Project Admin', role:'admin' }];
+    await saveData();
+  }
+}
+
+async function saveData() {
+  if (useRemote) {
+    setSyncState('syncing');
+    try {
+      await remoteSave(DB);
+      setSyncState('ok');
+    } catch(e) {
+      console.error('Remote save failed:', e);
+      setSyncState('err');
+      toast('Sync error — changes may not be saved for others.','err');
+    }
+  } else {
+    localSave(DB);
+  }
+}
+
+async function refreshData(showToast=false) {
+  if (!useRemote) { if(showToast) toast('Local mode — no remote to refresh.',''); return; }
+  setSyncState('syncing');
+  try {
+    DB = await remoteLoad();
+    setSyncState('ok');
+    const cur = currentUser();
+    if (document.getElementById('tab-ideas').classList.contains('active')) renderIdeas();
+    if (document.getElementById('tab-admin').classList.contains('active')) renderAdmin();
+    if(showToast) toast('Refreshed ↻','ok');
+  } catch(e) {
+    setSyncState('err');
+    if(showToast) toast('Refresh failed.','err');
+  }
+}
+
+// ── HELPERS ─────────────────────────────────────────────────
+function currentUser() {
+  if (!SESSION) return null;
+  return DB.members.find(m => m.username === SESSION.username) || null;
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+let aMode = 'login', pUser = '';
+
+function showAuth() {
   document.getElementById('auth-view').classList.add('active');
   document.getElementById('main-view').classList.remove('active');
-  document.getElementById('auth-error').textContent='';
-  document.getElementById('auth-username').value='';
-  document.getElementById('auth-title').value='';
-  document.getElementById('auth-title-wrap').style.display='none';
-  document.getElementById('auth-username').disabled=false;
-  document.getElementById('auth-subtitle').textContent='Enter your username to access the board.';
-  aMode='login';
+  document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-username').value = '';
+  document.getElementById('auth-title').value = '';
+  document.getElementById('auth-title-wrap').style.display = 'none';
+  document.getElementById('auth-username').disabled = false;
+  document.getElementById('auth-subtitle').textContent = 'Enter your username to access the board.';
+  aMode = 'login';
 }
-function showMain(){
+
+function showMain() {
   document.getElementById('auth-view').classList.remove('active');
   document.getElementById('main-view').classList.add('active');
   renderHeader();
-  const u=currentUser();
-  document.getElementById('admin-nav').style.display=u?.role==='admin'?'flex':'none';
+  const u = currentUser();
+  document.getElementById('admin-nav').style.display = u?.role === 'admin' ? 'flex' : 'none';
   switchTab('ideas');
+  // Auto-refresh every 30s
+  clearInterval(window._refreshTimer);
+  window._refreshTimer = setInterval(() => refreshData(false), 30000);
 }
-function authSubmit(){
-  const err=document.getElementById('auth-error');err.textContent='';
-  if(aMode==='login'){
-    const uname=document.getElementById('auth-username').value.trim().toLowerCase();
-    if(!uname){err.textContent='Please enter your username.';return}
-    const mem=getMembers().find(m=>m.username===uname);
-    if(!mem){err.textContent='Username not found. Ask your admin to add you.';return}
-    if(!mem.title){
-      pUser=uname;aMode='settitle';
-      document.getElementById('auth-subtitle').textContent=`Hey ${uname}! Set your display title to continue.`;
-      document.getElementById('auth-title-wrap').style.display='block';
-      document.getElementById('auth-username').disabled=true;return;
+
+async function authSubmit() {
+  const btn = document.getElementById('auth-btn');
+  const err = document.getElementById('auth-error');
+  err.textContent = '';
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    // Always reload fresh data on login
+    await loadData();
+
+    if (aMode === 'login') {
+      const uname = document.getElementById('auth-username').value.trim().toLowerCase();
+      if (!uname) { err.textContent = 'Please enter your username.'; return; }
+      const mem = DB.members.find(m => m.username === uname);
+      if (!mem) { err.textContent = 'Username not found. Ask your admin to add you.'; return; }
+      if (!mem.title) {
+        pUser = uname; aMode = 'settitle';
+        document.getElementById('auth-subtitle').textContent = `Hey ${uname}! Set your display title to continue.`;
+        document.getElementById('auth-title-wrap').style.display = 'block';
+        document.getElementById('auth-username').disabled = true;
+        return;
+      }
+      SESSION = { username: uname };
+      LS.set('sess', SESSION);
+      showMain();
+    } else {
+      const title = document.getElementById('auth-title').value.trim();
+      if (!title) { err.textContent = 'Please set a title.'; return; }
+      const idx = DB.members.findIndex(m => m.username === pUser);
+      DB.members[idx].title = title;
+      await saveData();
+      SESSION = { username: pUser };
+      LS.set('sess', SESSION);
+      showMain();
     }
-    setSess({username:uname});showMain();
-  } else {
-    const title=document.getElementById('auth-title').value.trim();
-    if(!title){err.textContent='Please set a title.';return}
-    const members=getMembers();const idx=members.findIndex(m=>m.username===pUser);
-    members[idx].title=title;setMembers(members);setSess({username:pUser});showMain();
+  } catch(e) {
+    err.textContent = 'Error loading data. Check connection.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Continue →';
   }
 }
-function logout(){clrSess();showAuth()}
 
-// ── NAV ──
-function switchTab(tab){
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+function logout() {
+  clearInterval(window._refreshTimer);
+  SESSION = null;
+  LS.del('sess');
+  showAuth();
+}
+
+// ── NAV ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
-  document.querySelectorAll('#main-view .view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('#main-view .view').forEach(v => v.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='ideas')renderIdeas();
-  if(tab==='admin')renderAdmin();
-  if(tab==='profile')renderProfile();
-}
-function renderHeader(){
-  const u=currentUser();if(!u)return;
-  document.getElementById('hdr-name').textContent=u.username;
-  document.getElementById('hdr-title').textContent=u.title||'';
-  const rp=document.getElementById('hdr-role');
-  rp.textContent=u.role==='admin'?'Admin':'Member';
-  rp.className='role-pill'+(u.role==='admin'?'':' member');
+  if (tab === 'ideas') renderIdeas();
+  if (tab === 'admin') renderAdmin();
+  if (tab === 'profile') renderProfile();
 }
 
-// ── IDEAS ──
-function renderIdeas(){
-  const me=currentUser();
-  const ideas=getIdeas().slice().sort((a,b)=>b.votes.length-a.votes.length);
-  const cnt=document.getElementById('ideas-list');
-  const srow=document.getElementById('stats-row');
-  document.getElementById('nb-ideas').textContent=ideas.length;
+function renderHeader() {
+  const u = currentUser(); if (!u) return;
+  document.getElementById('hdr-name').textContent = u.username;
+  document.getElementById('hdr-title').textContent = u.title || '';
+  const rp = document.getElementById('hdr-role');
+  rp.textContent = u.role === 'admin' ? 'Admin' : 'Member';
+  rp.className = 'role-pill' + (u.role === 'admin' ? '' : ' member');
+}
 
-  const totalVotes=ideas.reduce((s,i)=>s+i.votes.length,0);
-  const myIdeas=ideas.filter(i=>i.author===me.username).length;
-  srow.innerHTML=`
+// ── IDEAS ─────────────────────────────────────────────────────
+function renderIdeas() {
+  const me = currentUser();
+  const ideas = [...DB.ideas].sort((a,b) => b.votes.length - a.votes.length);
+  const cnt = document.getElementById('ideas-list');
+  const srow = document.getElementById('stats-row');
+  document.getElementById('nb-ideas').textContent = ideas.length;
+
+  const totalVotes = ideas.reduce((s,i) => s+i.votes.length, 0);
+  const myIdeas = ideas.filter(i => i.author === me.username).length;
+  srow.innerHTML = `
     <div class="stat-card"><span class="stat-icon">💡</span><div><div class="stat-val">${ideas.length}</div><div class="stat-key">Ideas</div></div></div>
     <div class="stat-card"><span class="stat-icon">▲</span><div><div class="stat-val">${totalVotes}</div><div class="stat-key">Total votes</div></div></div>
     <div class="stat-card"><span class="stat-icon">✍️</span><div><div class="stat-val">${myIdeas}</div><div class="stat-key">Your ideas</div></div></div>`;
 
-  if(!ideas.length){
-    cnt.innerHTML=`<div class="empty-state"><div class="empty-icon">💭</div><h3>No ideas yet</h3><p>Be the first to post an idea for the team to vote on.</p><button class="btn btn-primary" style="margin-top:4px" onclick="switchTab('post')">Post the first idea →</button></div>`;
+  if (!ideas.length) {
+    cnt.innerHTML = `<div class="empty-state"><div class="empty-icon">💭</div><h3>No ideas yet</h3><p>Be the first to post an idea for the team to vote on.</p><button class="btn btn-primary" style="margin-top:4px" onclick="switchTab('post')">Post the first idea →</button></div>`;
     return;
   }
-  const topVotes=ideas[0]?.votes.length||0;
-  cnt.innerHTML=ideas.map((idea,i)=>{
-    const isOwn=idea.author===me.username;
-    const voted=idea.votes.includes(me.username);
-    const aMem=getMembers().find(m=>m.username===idea.author);
-    const aTitle=aMem?.title||'';
-    const init=idea.author.charAt(0).toUpperCase();
-    const date=new Date(idea.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const isTop=idea.votes.length>0&&idea.votes.length===topVotes;
+
+  const topVotes = ideas[0]?.votes.length || 0;
+  cnt.innerHTML = ideas.map((idea,i) => {
+    const isOwn = idea.author === me.username;
+    const voted = idea.votes.includes(me.username);
+    const aMem = DB.members.find(m => m.username === idea.author);
+    const aTitle = aMem?.title || '';
+    const init = idea.author.charAt(0).toUpperCase();
+    const date = new Date(idea.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const isTop = idea.votes.length > 0 && idea.votes.length === topVotes;
     return `
     <div class="idea-card${isTop?' top':''}" style="animation-delay:${i*25}ms">
       <div class="vote-col${voted?' voted':''}${isOwn?' own':' clickable'}"
-        onclick="${isOwn?'':''}"
-        ${isOwn?'title="You cannot vote on your own idea"':''}
+        ${isOwn ? 'title="You cannot vote on your own idea"' : ''}
         id="vc-${idea.id}">
         <span class="v-arrow">▲</span>
         <span class="v-num">${idea.votes.length}</span>
@@ -505,85 +707,136 @@ function renderIdeas(){
       <div class="idea-body">
         <div class="idea-top">
           <div class="idea-title">${escHtml(idea.title)}</div>
-          ${(isOwn||me.role==='admin')?`<button class="btn-icon" onclick="confirmDeleteIdea('${idea.id}')" title="Delete">🗑</button>`:''}
+          ${(isOwn||me.role==='admin') ? `<button class="btn-icon" onclick="confirmDeleteIdea('${idea.id}')" title="Delete">🗑</button>` : ''}
         </div>
         <div class="idea-desc">${escHtml(idea.description)}</div>
         <div class="idea-foot">
           <div class="author-chip">
             <div class="a-av">${init}</div>
             <span class="a-name">${escHtml(idea.author)}</span>
-            ${aTitle?`<span class="a-role">· ${escHtml(aTitle)}</span>`:''}
+            ${aTitle ? `<span class="a-role">· ${escHtml(aTitle)}</span>` : ''}
           </div>
           <span class="idea-date">${date}</span>
-          ${isOwn?'<span class="own-tag">your idea</span>':''}
-          ${isTop&&idea.votes.length>0?'<span class="top-tag">🏆 Top Idea</span>':''}
+          ${isOwn ? '<span class="own-tag">your idea</span>' : ''}
+          ${isTop && idea.votes.length>0 ? '<span class="top-tag">🏆 Top Idea</span>' : ''}
         </div>
-        ${idea.votes.length?`<div class="voters-row"><span class="voters-lbl">Voted by:</span>${idea.votes.map(v=>`<span class="voter-chip">${escHtml(v)}</span>`).join('')}</div>`:''}
+        ${idea.votes.length ? `<div class="voters-row"><span class="voters-lbl">Voted by:</span>${idea.votes.map(v=>`<span class="voter-chip">${escHtml(v)}</span>`).join('')}</div>` : ''}
       </div>
     </div>`;
   }).join('');
 
-  // attach vote listeners separately to avoid inline onclick issues
-  ideas.forEach(idea=>{
-    const vc=document.getElementById('vc-'+idea.id);
-    if(vc&&vc.classList.contains('clickable')){
-      vc.addEventListener('click',()=>toggleVote(idea.id));
+  ideas.forEach(idea => {
+    const vc = document.getElementById('vc-'+idea.id);
+    if (vc && vc.classList.contains('clickable')) {
+      vc.addEventListener('click', () => toggleVote(idea.id));
     }
   });
 }
 
-function postIdea(){
-  const title=document.getElementById('idea-title').value.trim();
-  const desc=document.getElementById('idea-desc').value.trim();
-  if(!title){toast('Please add a title.','err');return}
-  if(!desc){toast('Please add a description.','err');return}
-  const me=currentUser();
-  const ideas=getIdeas();
-  ideas.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title,description:desc,author:me.username,votes:[],createdAt:Date.now()});
-  setIdeas(ideas);
-  document.getElementById('idea-title').value='';
-  document.getElementById('idea-desc').value='';
-  toast('Idea posted! 🎉','ok');switchTab('ideas');
+async function postIdea() {
+  const title = document.getElementById('idea-title').value.trim();
+  const desc = document.getElementById('idea-desc').value.trim();
+  if (!title) { toast('Please add a title.','err'); return; }
+  if (!desc) { toast('Please add a description.','err'); return; }
+  const me = currentUser();
+  const btn = document.getElementById('post-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    DB.ideas.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      title, description: desc, author: me.username, votes: [], createdAt: Date.now()
+    });
+    await saveData();
+    document.getElementById('idea-title').value = '';
+    document.getElementById('idea-desc').value = '';
+    toast('Idea posted! 🎉','ok');
+    switchTab('ideas');
+  } catch(e) {
+    toast('Failed to save. Try again.','err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit Idea →';
+  }
 }
 
-function toggleVote(ideaId){
-  const me=currentUser();const ideas=getIdeas();
-  const idea=ideas.find(i=>i.id===ideaId);if(!idea)return;
-  if(idea.author===me.username){toast("You can't vote on your own idea.",'err');return}
-  const idx=idea.votes.indexOf(me.username);
-  if(idx===-1){idea.votes.push(me.username);toast('Vote cast! ▲','ok')}
-  else{idea.votes.splice(idx,1);toast('Vote removed.','')}
-  setIdeas(ideas);renderIdeas();
+async function toggleVote(ideaId) {
+  const me = currentUser();
+  const idea = DB.ideas.find(i => i.id === ideaId);
+  if (!idea) return;
+  if (idea.author === me.username) { toast("You can't vote on your own idea.",'err'); return; }
+  const idx = idea.votes.indexOf(me.username);
+  const added = idx === -1;
+  if (added) idea.votes.push(me.username);
+  else idea.votes.splice(idx, 1);
+  renderIdeas(); // optimistic
+  try {
+    await saveData();
+    toast(added ? 'Vote cast! ▲' : 'Vote removed.', added ? 'ok' : '');
+  } catch(e) {
+    // rollback
+    if (added) idea.votes.splice(idea.votes.indexOf(me.username),1);
+    else idea.votes.push(me.username);
+    renderIdeas();
+    toast('Vote failed to save.','err');
+  }
 }
 
-function confirmDeleteIdea(id){showModal('🗑️','Delete this idea?','This will permanently remove the idea and all its votes.',()=>{deleteIdea(id);closeModal()})}
-function deleteIdea(id){setIdeas(getIdeas().filter(i=>i.id!==id));renderIdeas();toast('Idea deleted.','')}
-function confirmClearIdeas(){showModal('⚠️','Clear ALL ideas?','Every idea and vote will be permanently deleted.',()=>{setIdeas([]);renderIdeas();closeModal();toast('All ideas cleared.','')})}
-
-// ── PROFILE ──
-function renderProfile(){
-  const u=currentUser();
-  document.getElementById('prof-username').value=u.username;
-  document.getElementById('prof-title').value=u.title||'';
-  document.getElementById('p-avatar').textContent=u.username.charAt(0).toUpperCase();
-  document.getElementById('p-name').textContent=u.username;
-  document.getElementById('p-title').textContent=u.title||'No title set';
-}
-function saveProfile(){
-  const title=document.getElementById('prof-title').value.trim();
-  if(!title){toast('Title cannot be empty.','err');return}
-  const members=getMembers();const me=currentUser();
-  const idx=members.findIndex(m=>m.username===me.username);
-  members[idx].title=title;setMembers(members);renderHeader();renderProfile();
-  toast('Profile updated ✓','ok');
+function confirmDeleteIdea(id) {
+  showModal('🗑️','Delete this idea?','This will permanently remove the idea and all its votes.', async () => {
+    DB.ideas = DB.ideas.filter(i => i.id !== id);
+    await saveData();
+    renderIdeas();
+    closeModal();
+    toast('Idea deleted.','');
+  });
 }
 
-// ── ADMIN ──
-const EMOJIS=['🧑‍💻','👩‍🎨','🧑‍🔬','👨‍💼','🧑‍🚀','👩‍💻','🧑‍🎤'];
-function renderAdmin(){
-  const me=currentUser();if(me?.role!=='admin')return;
-  const members=getMembers();
-  document.getElementById('member-grid').innerHTML=members.map((m,i)=>`
+function confirmClearIdeas() {
+  showModal('⚠️','Clear ALL ideas?','Every idea and vote will be permanently deleted.', async () => {
+    DB.ideas = [];
+    await saveData();
+    renderIdeas();
+    closeModal();
+    toast('All ideas cleared.','');
+  });
+}
+
+// ── PROFILE ──────────────────────────────────────────────────
+function renderProfile() {
+  const u = currentUser();
+  document.getElementById('prof-username').value = u.username;
+  document.getElementById('prof-title').value = u.title || '';
+  document.getElementById('p-avatar').textContent = u.username.charAt(0).toUpperCase();
+  document.getElementById('p-name').textContent = u.username;
+  document.getElementById('p-title').textContent = u.title || 'No title set';
+}
+
+async function saveProfile() {
+  const title = document.getElementById('prof-title').value.trim();
+  if (!title) { toast('Title cannot be empty.','err'); return; }
+  const me = currentUser();
+  const idx = DB.members.findIndex(m => m.username === me.username);
+  DB.members[idx].title = title;
+  try {
+    await saveData();
+    renderHeader(); renderProfile();
+    toast('Profile updated ✓','ok');
+  } catch(e) {
+    toast('Failed to save.','err');
+  }
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────
+const EMOJIS = ['🧑‍💻','👩‍🎨','🧑‍🔬','👨‍💼','🧑‍🚀','👩‍💻','🧑‍🎤'];
+function renderAdmin() {
+  const me = currentUser(); if (me?.role !== 'admin') return;
+  // Show setup card if no config
+  document.getElementById('setup-info').style.display = hasCfg() ? 'none' : 'block';
+  if (!hasCfg()) {
+    const cfg = getCfg();
+    document.getElementById('cfg-binid').value = cfg.binId || '';
+    document.getElementById('cfg-key').value = cfg.key || '';
+  }
+  document.getElementById('member-grid').innerHTML = DB.members.map((m,i) => `
     <div class="member-card">
       <div class="mem-av">${EMOJIS[i%EMOJIS.length]}</div>
       <div class="mem-info">
@@ -591,54 +844,120 @@ function renderAdmin(){
         <div class="mem-title-d">${escHtml(m.title||'No title yet')}</div>
       </div>
       <div class="mem-actions">
-        ${m.username!==me.username?`
-          ${m.role!=='admin'?`<button class="btn btn-ghost btn-xs" onclick="confirmMakeAdmin('${m.username}')">Make Admin</button>`:''}
+        ${m.username !== me.username ? `
+          ${m.role!=='admin' ? `<button class="btn btn-ghost btn-xs" onclick="confirmMakeAdmin('${m.username}')">Make Admin</button>` : ''}
           <button class="btn btn-danger btn-xs" onclick="confirmRemoveMember('${m.username}')">Remove</button>
-        `:'<span style="font-size:11px;color:var(--text3)">You</span>'}
+        ` : '<span style="font-size:11px;color:var(--text3)">You</span>'}
       </div>
     </div>`).join('');
 }
-function addMember(){
-  const username=document.getElementById('new-uname').value.trim().toLowerCase();
-  const title=document.getElementById('new-title').value.trim();
-  if(!username){toast('Enter a username.','err');return}
-  const members=getMembers();
-  if(members.length>=7){toast('Max 7 members reached!','err');return}
-  if(members.find(m=>m.username===username)){toast('Username already exists.','err');return}
-  members.push({username,title:title||'',role:'member'});setMembers(members);
-  document.getElementById('new-uname').value='';document.getElementById('new-title').value='';
-  renderAdmin();toast(`${username} added ✓`,'ok');
-}
-function confirmMakeAdmin(u){showModal('⭐',`Transfer admin to ${u}?`,`You will become a regular member and ${u} will become the new admin.`,()=>{makeAdmin(u);closeModal()})}
-function makeAdmin(username){
-  const members=getMembers();const me=currentUser();
-  members.forEach(m=>{if(m.username===me.username)m.role='member';if(m.username===username)m.role='admin'});
-  setMembers(members);renderHeader();
-  document.getElementById('admin-nav').style.display='none';
-  switchTab('ideas');toast(`${username} is now Admin.`,'ok');
-}
-function confirmRemoveMember(u){showModal('🗑️',`Remove ${u}?`,'They will lose access. Their ideas and votes remain.',()=>{setMembers(getMembers().filter(m=>m.username!==u));renderAdmin();closeModal();toast(`${u} removed.`,'')})}
 
-// ── UTILS ──
-const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+async function saveConfig() {
+  const binId = document.getElementById('cfg-binid').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  if (!binId || !key) { toast('Please fill both fields.','err'); return; }
+  LS.set('cfg', { binId, key });
+  // Test connection
+  try {
+    DB = await remoteLoad();
+    useRemote = true;
+    setSyncState('ok');
+    toast('Connected to JSONBin ✓','ok');
+    renderAdmin();
+  } catch(e) {
+    LS.del('cfg');
+    toast('Connection failed. Check Bin ID and key.','err');
+  }
+}
+
+async function addMember() {
+  const username = document.getElementById('new-uname').value.trim().toLowerCase();
+  const title = document.getElementById('new-title').value.trim();
+  if (!username) { toast('Enter a username.','err'); return; }
+  if (DB.members.length >= 7) { toast('Max 7 members reached!','err'); return; }
+  if (DB.members.find(m => m.username === username)) { toast('Username already exists.','err'); return; }
+  DB.members.push({ username, title: title||'', role:'member' });
+  try {
+    await saveData();
+    document.getElementById('new-uname').value = '';
+    document.getElementById('new-title').value = '';
+    renderAdmin();
+    toast(`${username} added ✓`,'ok');
+  } catch(e) {
+    DB.members.pop();
+    toast('Failed to save.','err');
+  }
+}
+
+function confirmMakeAdmin(u) {
+  showModal('⭐',`Transfer admin to ${u}?`,`You will become a regular member and ${u} will become the new admin.`, async () => {
+    const me = currentUser();
+    DB.members.forEach(m => {
+      if (m.username === me.username) m.role = 'member';
+      if (m.username === u) m.role = 'admin';
+    });
+    await saveData();
+    renderHeader();
+    document.getElementById('admin-nav').style.display = 'none';
+    switchTab('ideas');
+    closeModal();
+    toast(`${u} is now Admin.`,'ok');
+  });
+}
+
+function confirmRemoveMember(u) {
+  showModal('🗑️',`Remove ${u}?`,'They will lose access. Their ideas and votes remain.', async () => {
+    DB.members = DB.members.filter(m => m.username !== u);
+    await saveData();
+    renderAdmin();
+    closeModal();
+    toast(`${u} removed.`,'');
+  });
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+const escHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 let _tt;
-function toast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;clearTimeout(_tt);_tt=setTimeout(()=>el.className='',2800)}
-function showModal(icon,title,body,onConfirm){
-  document.getElementById('modal-icon').textContent=icon;
-  document.getElementById('modal-title').textContent=title;
-  document.getElementById('modal-body').textContent=body;
-  document.getElementById('modal-confirm').onclick=onConfirm;
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.className = '', 2800);
+}
+function showModal(icon, title, body, onConfirm) {
+  document.getElementById('modal-icon').textContent = icon;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent = body;
+  document.getElementById('modal-confirm').onclick = onConfirm;
   document.getElementById('modal').classList.add('open');
 }
-function closeModal(){document.getElementById('modal').classList.remove('open')}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-// ── INIT ──
-bootstrap();
-const s=getSess();
-if(s&&getMembers().find(m=>m.username===s.username))showMain();
-else{clrSess();showAuth()}
-document.getElementById('auth-username').addEventListener('keydown',e=>e.key==='Enter'&&authSubmit());
-document.getElementById('auth-title').addEventListener('keydown',e=>e.key==='Enter'&&authSubmit());
+// ── INIT ──────────────────────────────────────────────────────
+(async () => {
+  try {
+    await loadData();
+  } catch(e) {
+    console.error('Init load failed:', e);
+    DB = localLoad();
+  }
+
+  document.getElementById('loading-screen').classList.add('hidden');
+  document.getElementById('app').style.display = '';
+
+  const saved = LS.get('sess');
+  if (saved && DB.members.find(m => m.username === saved.username)) {
+    SESSION = saved;
+    showMain();
+  } else {
+    LS.del('sess');
+    showAuth();
+  }
+
+  document.getElementById('auth-username').addEventListener('keydown', e => e.key==='Enter' && authSubmit());
+  document.getElementById('auth-title').addEventListener('keydown', e => e.key==='Enter' && authSubmit());
+})();
 </script>
 </body>
 </html>
