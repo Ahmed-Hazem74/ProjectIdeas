@@ -448,10 +448,19 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 // ══════════════════════════════════════════════════════════════
 
 const LS = {
-  get: k => { try { return JSON.parse(localStorage.getItem('tv_'+k)) } catch { return null } },
-  set: (k,v) => localStorage.setItem('tv_'+k, JSON.stringify(v)),
-  del: k => localStorage.removeItem('tv_'+k)
+  get: k => { try { return JSON.parse(localStorage.getItem('tv3_'+k)) } catch { return null } },
+  set: (k,v) => localStorage.setItem('tv3_'+k, JSON.stringify(v)),
+  del: k => localStorage.removeItem('tv3_'+k)
 };
+
+// ── HARDCODED TEAM MEMBERS (edit this list to add/remove members) ──
+// This is the source of truth when localStorage is empty AND no JSONBin is configured.
+// The admin can always add more members via the Admin panel.
+const SEED_MEMBERS = [
+  { username: 'admin',            title: 'Project Admin', role: 'admin'  },
+  { username: 'ahmed-abdel-aziz', title: '',              role: 'member' },
+  { username: 'ahmed-hazem',      title: '',              role: 'member' },
+];
 
 // In-memory state
 let DB = { members: [], ideas: [] };
@@ -486,7 +495,7 @@ async function remoteSave(data) {
 // ── LOCAL FALLBACK ───────────────────────────────────────────
 function localLoad() {
   return {
-    members: LS.get('members') || [{ username:'admin', title:'Project Admin', role:'admin' }],
+    members: LS.get('members') || JSON.parse(JSON.stringify(SEED_MEMBERS)),
     ideas: LS.get('ideas') || []
   };
 }
@@ -526,9 +535,9 @@ async function loadData() {
   // ensure structure
   if (!DB.members) DB.members = [];
   if (!DB.ideas) DB.ideas = [];
-  // bootstrap admin if empty
+  // bootstrap with seed members if completely empty
   if (DB.members.length === 0) {
-    DB.members = [{ username:'admin', title:'Project Admin', role:'admin' }];
+    DB.members = JSON.parse(JSON.stringify(SEED_MEMBERS));
     await saveData();
   }
 }
