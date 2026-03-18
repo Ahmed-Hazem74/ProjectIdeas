@@ -3,371 +3,415 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TeamVote — Idea Board</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<title>TeamVote</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-:root {
-  --bg: #080910;
-  --surface: #0f1018;
-  --surface2: #161720;
-  --surface3: #1d1e2a;
-  --border: rgba(255,255,255,0.07);
-  --border-h: rgba(255,255,255,0.13);
-  --accent: #a8ff57;
-  --accent-dim: rgba(168,255,87,0.1);
-  --accent-glow: rgba(168,255,87,0.3);
-  --blue: #57b8ff;
-  --blue-dim: rgba(87,184,255,0.1);
-  --danger: #ff5757;
-  --danger-dim: rgba(255,87,87,0.1);
-  --text: #f0f1f8;
-  --text2: #9a9bb4;
-  --text3: #52536a;
-  --r: 14px;
-  --sw: 240px;
+:root{
+  --bg:#07080f; --s1:#0e0f1a; --s2:#141526; --s3:#1a1c2e;
+  --br:rgba(255,255,255,.06); --brh:rgba(255,255,255,.12);
+  --g:#b4ff4e; --g-dim:rgba(180,255,78,.1); --g-glow:rgba(180,255,78,.28);
+  --b:#5ab4ff; --b-dim:rgba(90,180,255,.1);
+  --r:#ff5252; --r-dim:rgba(255,82,82,.1);
+  --t1:#eeeef8; --t2:#8889a8; --t3:#44455e;
+  --rad:14px; --nav:228px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-body::after{content:'';position:fixed;width:700px;height:700px;background:radial-gradient(circle,rgba(168,255,87,0.04) 0%,transparent 70%);top:-250px;right:-250px;pointer-events:none;z-index:0}
-body::before{content:'';position:fixed;width:500px;height:500px;background:radial-gradient(circle,rgba(87,184,255,0.03) 0%,transparent 70%);bottom:-200px;left:-200px;pointer-events:none;z-index:0}
+body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+#ga{position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(180,255,78,.035) 0%,transparent 70%);top:-200px;right:-200px;pointer-events:none;z-index:0}
+#gb{position:fixed;width:480px;height:480px;background:radial-gradient(circle,rgba(90,180,255,.025) 0%,transparent 70%);bottom:-180px;left:-180px;pointer-events:none;z-index:0}
 #app{position:relative;z-index:1}
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:99px}
-.display{font-family:'Bricolage Grotesque',sans-serif;font-weight:800}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:99px}
 
-/* ── BUTTONS ── */
-.btn{font-family:'Instrument Sans',sans-serif;font-weight:600;font-size:13px;padding:9px 20px;border-radius:10px;border:none;cursor:pointer;transition:all .18s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-primary{background:var(--accent);color:#080910;box-shadow:0 0 0 0 var(--accent-glow)}
-.btn-primary:hover{background:#bfff70;box-shadow:0 0 24px var(--accent-glow);transform:translateY(-1px)}
-.btn-ghost{background:var(--surface3);color:var(--text2);border:1px solid var(--border)}
-.btn-ghost:hover{color:var(--text);border-color:var(--border-h)}
-.btn-danger{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(255,87,87,0.2)}
-.btn-danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
-.btn-sm{padding:6px 14px;font-size:12px;border-radius:8px}
-.btn-xs{padding:4px 10px;font-size:11px;border-radius:6px}
-.btn-icon{width:32px;height:32px;padding:0;border-radius:8px;font-size:14px;background:transparent;color:var(--text3);border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
-.btn-icon:hover{background:var(--danger-dim);color:var(--danger);border-color:rgba(255,87,87,0.25)}
+/* VIEWS */
+.view{display:none!important}.view.on{display:block!important}
+#auth-view.on{display:flex!important;flex-direction:column;align-items:center;justify-content:center;min-height:100vh}
 
-/* ── VIEWS ── */
-.view{display:none}
-.view.active{display:block}
+/* BUTTONS */
+.btn{font-family:'Instrument Sans',sans-serif;font-weight:600;font-size:13px;padding:9px 20px;border-radius:10px;border:none;cursor:pointer;transition:all .16s cubic-bezier(.4,0,.2,1);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-p{background:var(--g);color:#07080f}.btn-p:hover{background:#c6ff6a;box-shadow:0 0 22px var(--g-glow);transform:translateY(-1px)}
+.btn-q{background:var(--s3);color:var(--t2);border:1px solid var(--br)}.btn-q:hover{color:var(--t1);border-color:var(--brh)}
+.btn-b{background:var(--b-dim);color:var(--b);border:1px solid rgba(90,180,255,.2)}.btn-b:hover{background:var(--b);color:#07080f}
+.btn-d{background:var(--r-dim);color:var(--r);border:1px solid rgba(255,82,82,.18)}.btn-d:hover{background:var(--r);color:#fff;border-color:var(--r)}
+.btn-sm{padding:6px 13px;font-size:12px;border-radius:8px}.btn-xs{padding:4px 10px;font-size:11px;border-radius:6px}
+.ibtn{width:28px;height:28px;padding:0;border-radius:7px;font-size:13px;background:transparent;color:var(--t3);border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .13s;font-family:inherit}
+.ibtn:hover{background:var(--r-dim);color:var(--r);border-color:rgba(255,82,82,.2)}
+.ibtn.edit:hover{background:var(--b-dim);color:var(--b);border-color:rgba(90,180,255,.2)}
 
-/* ── AUTH ── */
-#auth-view{display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column}
-#auth-view.active{display:flex}
-.auth-wrap{position:relative;z-index:1;width:100%;max-width:400px;padding:24px}
-.auth-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:30px;margin-bottom:32px;text-align:center;letter-spacing:-.5px}
-.auth-logo em{color:var(--accent);font-style:normal}
-.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 32px;box-shadow:0 32px 80px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.04)}
+/* FIELDS */
+.fld{margin-bottom:15px}
+.fld label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:6px}
+.fld input,.fld textarea{width:100%;background:var(--s2);border:1px solid var(--br);border-radius:10px;padding:11px 14px;color:var(--t1);font-family:'Instrument Sans',sans-serif;font-size:14px;outline:none;transition:border-color .14s,box-shadow .14s}
+.fld input:focus,.fld textarea:focus{border-color:rgba(180,255,78,.35);box-shadow:0 0 0 3px rgba(180,255,78,.07)}
+.fld input::placeholder,.fld textarea::placeholder{color:var(--t3)}
+.fld textarea{resize:vertical;min-height:90px}
+.fld input:disabled{opacity:.35;cursor:not-allowed}
+.err{color:var(--r);font-size:12px;margin-top:8px}
+.hint{color:var(--t3);font-size:11px;margin-top:5px}
+
+/* AUTH */
+.auth-wrap{width:100%;max-width:420px;padding:24px;position:relative;z-index:1}
+.auth-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:32px;text-align:center;margin-bottom:28px;letter-spacing:-.5px}
+.auth-logo b{color:var(--g)}
+.auth-card{background:var(--s1);border:1px solid var(--br);border-radius:20px;padding:36px 32px;box-shadow:0 40px 90px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.04)}
 .auth-card h2{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px}
-.auth-card>p{color:var(--text2);font-size:13px;margin-bottom:26px}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:7px}
-.field input,.field textarea,.field select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Instrument Sans',sans-serif;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s}
-.field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(168,255,87,0.4);box-shadow:0 0 0 3px rgba(168,255,87,0.08)}
-.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
-.field textarea{resize:vertical;min-height:100px}
-.field input:disabled{opacity:.4;cursor:not-allowed}
-.error-msg{color:var(--danger);font-size:12px;margin-top:10px}
+.auth-card>p.sub{color:var(--t2);font-size:13px;margin-bottom:24px}
+.auth-tabs{display:flex;gap:0;background:var(--s2);border-radius:10px;padding:3px;margin-bottom:24px}
+.auth-tab{flex:1;padding:7px;text-align:center;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--t2);transition:all .14s}
+.auth-tab.on{background:var(--s3);color:var(--t1)}
 
-/* ── HEADER ── */
-.header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:58px;border-bottom:1px solid var(--border);background:rgba(8,9,16,.85);backdrop-filter:blur(16px);position:sticky;top:0;z-index:200}
-.logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;letter-spacing:-.3px}
-.logo em{color:var(--accent);font-style:normal}
-.header-right{display:flex;align-items:center;gap:10px}
-.user-chip{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:5px 5px 5px 14px}
-.uc-name{font-size:13px;font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.uc-title{font-size:11px;color:var(--blue);font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.role-pill{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:4px 10px;border-radius:999px;background:var(--accent);color:#080910}
-.role-pill.member{background:var(--blue)}
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:56px;border-bottom:1px solid var(--br);background:rgba(7,8,15,.88);backdrop-filter:blur(18px);position:sticky;top:0;z-index:200}
+.logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.3px}
+.logo b{color:var(--g)}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.uchip{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--br);border-radius:999px;padding:5px 5px 5px 14px}
+.uc-n{font-size:13px;font-weight:500;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uc-t{font-size:11px;color:var(--b);font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rpill{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:4px 10px;border-radius:999px;background:var(--g);color:#07080f}
+.rpill.m{background:var(--b);color:#07080f}
 
-/* ── LAYOUT ── */
-.main-layout{display:grid;grid-template-columns:var(--sw) 1fr;min-height:calc(100vh - 58px)}
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:var(--nav) 1fr;min-height:calc(100vh - 56px)}
+.sidebar{border-right:1px solid var(--br);padding:18px 10px;display:flex;flex-direction:column;gap:1px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sb-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);padding:3px 12px;margin:10px 0 3px}
+.sb-sec:first-child{margin-top:0}
+.nitem{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:all .13s;user-select:none;position:relative}
+.nitem:hover{background:var(--s2);color:var(--t1)}
+.nitem.on{background:var(--g-dim);color:var(--g)}
+.nitem.on::before{content:'';position:absolute;left:0;top:24%;bottom:24%;width:2.5px;border-radius:99px;background:var(--g)}
+.nicon{font-size:15px;width:20px;text-align:center}
+.nbadge{margin-left:auto;font-size:10px;font-weight:700;background:var(--s3);color:var(--t3);padding:2px 7px;border-radius:99px}
+.nitem.on .nbadge{background:var(--g-dim);color:var(--g)}
 
-/* ── SIDEBAR ── */
-.sidebar{border-right:1px solid var(--border);padding:20px 12px;display:flex;flex-direction:column;gap:2px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto}
-.sb-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);padding:4px 12px;margin:12px 0 4px}
-.sb-label:first-child{margin-top:0}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);transition:all .15s;user-select:none;position:relative}
-.nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{background:var(--accent-dim);color:var(--accent)}
-.nav-item.active::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:2.5px;border-radius:99px;background:var(--accent)}
-.nav-icon{font-size:16px;width:20px;text-align:center}
-.nav-badge{margin-left:auto;font-size:10px;font-weight:700;background:var(--surface3);color:var(--text3);padding:2px 7px;border-radius:99px}
-.nav-item.active .nav-badge{background:var(--accent-dim);color:var(--accent)}
+/* CONTENT */
+.content{padding:30px 34px;max-width:860px}
+.ph{margin-bottom:22px}
+.ph h1{font-family:'Bricolage Grotesque',sans-serif;font-size:25px;font-weight:800;letter-spacing:-.4px}
+.ph p{color:var(--t2);font-size:13px;margin-top:3px}
 
-/* ── CONTENT ── */
-.content{padding:32px 36px}
-.page-header{margin-bottom:24px;display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
-.ph-left h1{font-family:'Bricolage Grotesque',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.5px}
-.ph-left p{color:var(--text2);font-size:13px;margin-top:3px}
+/* STATS */
+.stats{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.scard{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:13px 18px;display:flex;align-items:center;gap:10px;flex:1;min-width:100px}
+.si{font-size:19px}.sv{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;line-height:1}.sk{font-size:11px;color:var(--t2);margin-top:1px}
 
-/* ── STATS ── */
-.stats-row{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex:1;min-width:110px}
-.stat-icon{font-size:20px}
-.stat-val{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;line-height:1}
-.stat-key{font-size:11px;color:var(--text2);margin-top:1px}
+/* IDEA CARDS */
+.igrid{display:flex;flex-direction:column;gap:12px}
+@keyframes fsi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 
-/* ── IDEAS GRID ── */
-.ideas-grid{display:flex;flex-direction:column;gap:10px}
-@keyframes fsi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-.idea-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);display:grid;grid-template-columns:68px 1fr;overflow:hidden;transition:border-color .2s,transform .2s,box-shadow .2s;animation:fsi .25s ease both;position:relative}
-.idea-card:hover{border-color:var(--border-h);transform:translateY(-2px);box-shadow:0 10px 36px rgba(0,0,0,.4)}
-.idea-card.top{border-color:rgba(168,255,87,.18)}
-.idea-card.top::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent 70%)}
+.icard{background:var(--s1);border:1px solid var(--br);border-radius:var(--rad);display:grid;grid-template-columns:64px 1fr;overflow:hidden;transition:border-color .18s,box-shadow .18s;animation:fsi .22s ease both;position:relative}
+.icard:hover{border-color:var(--brh);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.icard.top-card{border-color:rgba(180,255,78,.2)}
+.icard.top-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--g),transparent 75%)}
 
 /* vote col */
-.vote-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:20px 0;border-right:1px solid var(--border);background:var(--surface2);user-select:none;transition:background .15s}
-.vote-col.clickable{cursor:pointer}
-.vote-col.clickable:hover{background:rgba(168,255,87,.07)}
-.vote-col.voted{background:var(--accent-dim)}
-.vote-col.own{cursor:not-allowed;opacity:.7}
-.v-arrow{font-size:17px;color:var(--text3);transition:color .15s,transform .15s;line-height:1}
-.vote-col.clickable:hover .v-arrow{color:var(--accent);transform:translateY(-2px)}
-.vote-col.voted .v-arrow{color:var(--accent)}
-.v-num{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;color:var(--text2);line-height:1;transition:color .15s}
-.vote-col.voted .v-num{color:var(--accent)}
-.v-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3)}
+.vcol{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:18px 0;border-right:1px solid var(--br);background:var(--s2);transition:background .15s;user-select:none;cursor:pointer}
+.vcol:hover{background:rgba(180,255,78,.08)}
+.vcol.voted{background:var(--g-dim)}
+.vcol.own{cursor:not-allowed;opacity:.6}.vcol.own:hover{background:var(--s2)}
+.varrow{font-size:16px;color:var(--t3);transition:color .14s,transform .14s;line-height:1}
+.vcol:not(.own):hover .varrow{color:var(--g);transform:translateY(-2px)}
+.vcol.voted .varrow{color:var(--g)}
+.vnum{font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:800;color:var(--t2);line-height:1;transition:color .14s}
+.vcol.voted .vnum{color:var(--g)}
+.vlbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t3)}
 
-/* body */
-.idea-body{padding:18px 20px;display:flex;flex-direction:column;gap:0}
-.idea-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:7px}
-.idea-title{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.3;flex:1}
-.idea-desc{color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:13px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.idea-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.author-chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:3px 10px 3px 4px}
-.a-av{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--accent));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#080910;flex-shrink:0}
-.a-name{font-size:12px;font-weight:600}
-.a-role{font-size:11px;color:var(--blue)}
-.idea-date{font-size:11px;color:var(--text3)}
-.own-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;background:var(--accent-dim);color:var(--accent);padding:2px 8px;border-radius:999px;border:1px solid rgba(168,255,87,.2)}
+/* idea body */
+.ibody{padding:16px 18px;display:flex;flex-direction:column}
+.itop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.ititle{font-family:'Bricolage Grotesque',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.15px;line-height:1.3;flex:1}
+.idesc{color:var(--t2);font-size:13px;line-height:1.7;margin-bottom:12px}
+.ifoot{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.achip{display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--br);border-radius:999px;padding:3px 9px 3px 4px}
+.aav{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--b),var(--g));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#07080f;flex-shrink:0;font-family:'Bricolage Grotesque',sans-serif}
+.aname{font-size:12px;font-weight:600}.arole{font-size:11px;color:var(--b)}
+.idate{font-size:11px;color:var(--t3)}
+.own-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;background:var(--g-dim);color:var(--g);padding:2px 8px;border-radius:999px;border:1px solid rgba(180,255,78,.2)}
 .top-tag{font-size:11px;color:gold}
-.voters-row{margin-top:9px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.voters-lbl{font-size:11px;color:var(--text3)}
-.voter-chip{font-size:11px;color:var(--text2);background:var(--surface3);border-radius:4px;padding:1px 6px}
+.voters{margin-top:8px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.vlbl2{font-size:11px;color:var(--t3)}
+.vchip{font-size:11px;color:var(--t2);background:var(--s3);border-radius:4px;padding:1px 7px}
 
-/* ── EMPTY ── */
-.empty-state{padding:80px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
-.empty-icon{width:64px;height:64px;border-radius:18px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px}
-.empty-state h3{font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:700}
-.empty-state p{color:var(--text2);font-size:13px;max-width:260px;line-height:1.6}
+/* EDIT inline */
+.edit-box{margin-top:10px;background:var(--s2);border:1px solid rgba(180,255,78,.2);border-radius:10px;padding:12px}
+.edit-box input{width:100%;background:var(--s3);border:1px solid var(--br);border-radius:8px;padding:8px 12px;color:var(--t1);font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;outline:none;margin-bottom:8px;transition:border-color .14s}
+.edit-box input:focus{border-color:rgba(180,255,78,.4)}
+.edit-box textarea{width:100%;background:var(--s3);border:1px solid var(--br);border-radius:8px;padding:8px 12px;color:var(--t2);font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;resize:vertical;min-height:70px;margin-bottom:8px;line-height:1.6;transition:border-color .14s}
+.edit-box textarea:focus{border-color:rgba(180,255,78,.4)}
+.edit-actions{display:flex;gap:7px}
 
-/* ── FORM CARD ── */
-.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;max-width:640px}
-.form-card .field:last-of-type{margin-bottom:20px}
+/* FEEDBACK SECTION */
+.feedback-section{border-top:1px solid var(--br);margin-top:12px;padding-top:12px}
+.fb-toggle{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;user-select:none;transition:color .13s;background:none;border:none;font-family:'Instrument Sans',sans-serif;padding:0}
+.fb-toggle:hover{color:var(--t2)}
+.fb-toggle .fb-count{background:var(--s3);color:var(--t3);font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px}
+.fb-toggle.has-fb .fb-count{background:var(--b-dim);color:var(--b)}
+.fb-body{margin-top:10px;display:none}
+.fb-body.open{display:block}
+.fb-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.fb-item{background:var(--s2);border:1px solid var(--br);border-radius:9px;padding:10px 13px;position:relative}
+.fb-item-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.fb-av{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--b),var(--g));display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#07080f;flex-shrink:0;font-family:'Bricolage Grotesque',sans-serif}
+.fb-author{font-size:12px;font-weight:600}
+.fb-role{font-size:11px;color:var(--b)}
+.fb-date{font-size:11px;color:var(--t3);margin-left:auto}
+.fb-del{position:absolute;top:8px;right:8px}
+.fb-text{font-size:13px;color:var(--t2);line-height:1.6}
+.fb-input-row{display:flex;gap:8px;align-items:flex-end}
+.fb-input-row textarea{flex:1;background:var(--s2);border:1px solid var(--br);border-radius:9px;padding:9px 12px;color:var(--t1);font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none;resize:none;height:40px;line-height:1.4;transition:border-color .14s,height .14s}
+.fb-input-row textarea:focus{border-color:rgba(90,180,255,.35);height:70px;box-shadow:0 0 0 3px rgba(90,180,255,.07)}
+.fb-input-row textarea::placeholder{color:var(--t3)}
 
-/* ── PROFILE ── */
-.profile-hero{max-width:640px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px 28px;margin-bottom:14px;display:flex;align-items:center;gap:18px}
-.p-avatar{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:#080910;flex-shrink:0}
-.p-name{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;font-weight:800}
-.p-title{color:var(--blue);font-size:13px;margin-top:2px}
+/* EMPTY */
+.empty{padding:72px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.eicon{width:60px;height:60px;border-radius:16px;background:var(--s2);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:26px}
+.empty h3{font-family:'Bricolage Grotesque',sans-serif;font-size:18px;font-weight:700}
+.empty p{color:var(--t2);font-size:13px;max-width:240px;line-height:1.6}
 
-/* ── ADMIN ── */
-.sec-title{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.admin-sec{margin-bottom:34px}
-.member-grid{display:flex;flex-direction:column;gap:8px;max-width:680px}
-.member-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 18px;display:flex;align-items:center;gap:14px;transition:border-color .15s}
-.member-card:hover{border-color:var(--border-h)}
-.mem-av{width:40px;height:40px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.mem-info{flex:1}
-.mem-name{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
-.mem-title-d{font-size:12px;color:var(--blue);margin-top:1px}
-.admin-star{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;background:rgba(255,215,0,.12);color:gold;padding:2px 7px;border-radius:999px;border:1px solid rgba(255,215,0,.2)}
-.mem-actions{display:flex;gap:6px}
+/* FORM CARD */
+.fcard{background:var(--s1);border:1px solid var(--br);border-radius:var(--rad);padding:26px;max-width:620px}
+.fcard .fld:last-of-type{margin-bottom:20px}
 
-.add-form{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:640px;display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
-.add-form .field{margin:0}
+/* PROFILE */
+.phero{max-width:620px;background:var(--s1);border:1px solid var(--br);border-radius:var(--rad);padding:22px 26px;margin-bottom:14px;display:flex;align-items:center;gap:16px}
+.pav{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--b),var(--g));display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:#07080f;flex-shrink:0}
+.pname{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;font-weight:800}
+.ptitle{color:var(--b);font-size:13px;margin-top:2px}
 
-.danger-zone{background:var(--danger-dim);border:1px solid rgba(255,87,87,.2);border-radius:12px;padding:18px 20px;max-width:480px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.dz-text h4{font-weight:600;font-size:14px}
-.dz-text p{font-size:12px;color:var(--text2);margin-top:2px}
+/* ADMIN */
+.stitle{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.asec{margin-bottom:32px}
+.mgrid{display:flex;flex-direction:column;gap:8px;max-width:660px}
+.mcard{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:border-color .14s}
+.mcard:hover{border-color:var(--brh)}
+.mav{width:38px;height:38px;border-radius:10px;background:var(--s2);border:1px solid var(--br);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.minfo{flex:1}.mname{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
+.mtitle{font-size:12px;color:var(--b);margin-top:1px}
+.adstar{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;background:rgba(255,215,0,.1);color:gold;padding:2px 7px;border-radius:999px;border:1px solid rgba(255,215,0,.18)}
+.macts{display:flex;gap:6px}
+.addform{background:var(--s1);border:1px solid var(--br);border-radius:12px;padding:18px;max-width:620px;display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+.addform .fld{margin:0}
+.dzone{background:var(--r-dim);border:1px solid rgba(255,82,82,.18);border-radius:12px;padding:16px 20px;max-width:480px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.dzt h4{font-weight:600;font-size:14px}.dzt p{font-size:12px;color:var(--t2);margin-top:2px}
 
-/* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:400px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,.7);animation:fsi .2s ease}
-.modal-icon{font-size:32px;margin-bottom:14px}
-.modal h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;margin-bottom:8px}
-.modal p{color:var(--text2);font-size:13px;margin-bottom:24px;line-height:1.6}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--s1);border:1px solid var(--br);border-radius:20px;padding:30px;max-width:390px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,.7);animation:fsi .18s ease}
+.modal-ico{font-size:30px;margin-bottom:12px}
+.modal h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;margin-bottom:7px}
+.modal p{color:var(--t2);font-size:13px;margin-bottom:22px;line-height:1.6}
+.macts2{display:flex;gap:9px;justify-content:flex-end}
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:11px 18px;font-size:13px;font-weight:500;z-index:9999;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;display:flex;align-items:center;gap:7px;box-shadow:0 8px 32px rgba(0,0,0,.4);white-space:nowrap}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-#toast.ok{border-color:rgba(168,255,87,.3)}
-#toast.ok::before{content:'✓';color:var(--accent);font-weight:800}
-#toast.err{border-color:rgba(255,87,87,.3)}
-#toast.err::before{content:'✕';color:var(--danger);font-weight:800}
+/* TOAST */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--s2);border:1px solid var(--br);border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;z-index:9999;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;display:flex;align-items:center;gap:7px;box-shadow:0 8px 30px rgba(0,0,0,.5);white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.ok{border-color:rgba(180,255,78,.28)}
+#toast.ok::before{content:'✓';color:var(--g);font-weight:800}
+#toast.er{border-color:rgba(255,82,82,.28)}
+#toast.er::before{content:'✕';color:var(--r);font-weight:800}
 
-/* ── RESPONSIVE ── */
-@media(max-width:720px){
-  .main-layout{grid-template-columns:1fr}
-  .sidebar{position:static;height:auto;flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border);padding:8px}
-  .sb-label{display:none}
-  .nav-item{padding:8px 12px;white-space:nowrap;flex-shrink:0}
-  .nav-item.active::before{top:auto;bottom:0;left:10%;right:10%;width:auto;height:2px}
-  .content{padding:20px 16px}
-  .add-form{grid-template-columns:1fr}
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--t3);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--br)}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto;flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--br);padding:8px}
+  .sb-sec{display:none}
+  .nitem{padding:8px 12px;white-space:nowrap;flex-shrink:0}
+  .nitem.on::before{top:auto;bottom:0;left:10%;right:10%;width:auto;height:2px}
+  .content{padding:18px 14px}
+  .addform{grid-template-columns:1fr}
+  .hdr{padding:0 14px}
+  .fb-input-row{flex-direction:column}
 }
 </style>
 </head>
 <body>
+<div id="ga"></div><div id="gb"></div>
 <div id="app">
 
-<!-- AUTH -->
+<!-- ══ AUTH ══ -->
 <div id="auth-view" class="view">
   <div class="auth-wrap">
-    <div class="auth-logo">Team<em>Vote</em></div>
+    <div class="auth-logo">Team<b>Vote</b></div>
     <div class="auth-card">
-      <h2>Sign in</h2>
-      <p id="auth-subtitle">Enter your username to access the board.</p>
-      <div class="field">
-        <label>Username</label>
-        <input id="auth-username" type="text" placeholder="your username" autocomplete="off"/>
+      <div class="auth-tabs">
+        <div class="auth-tab on" id="tab-login" onclick="switchAuthTab('login')">Sign In</div>
+        <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
       </div>
-      <div id="auth-title-wrap" class="field" style="display:none">
-        <label>Your Title</label>
-        <input id="auth-title" type="text" placeholder="e.g. Lead Designer, Backend Dev…"/>
+
+      <!-- LOGIN -->
+      <div id="login-form">
+        <div class="fld">
+          <label>Username</label>
+          <input id="l-user" type="text" placeholder="your username" autocomplete="off"/>
+        </div>
+        <div class="fld">
+          <label>Password</label>
+          <input id="l-pass" type="password" placeholder="••••••••"/>
+        </div>
+        <button class="btn btn-p" style="width:100%;justify-content:center" onclick="doLogin()">Sign In →</button>
+        <p class="err" id="l-err"></p>
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="authSubmit()">Continue →</button>
-      <p class="error-msg" id="auth-error"></p>
+
+      <!-- REGISTER -->
+      <div id="register-form" style="display:none">
+        <div class="fld">
+          <label>Username</label>
+          <input id="r-user" type="text" placeholder="choose a username" autocomplete="off"/>
+        </div>
+        <div class="fld">
+          <label>Password</label>
+          <input id="r-pass" type="password" placeholder="min 4 characters"/>
+        </div>
+        <div class="fld">
+          <label>Your Title</label>
+          <input id="r-title" type="text" placeholder="e.g. Lead Designer, Backend Dev…"/>
+        </div>
+        <div class="fld">
+          <label>Invite Code</label>
+          <input id="r-code" type="text" placeholder="ask your admin for the code"/>
+          <p class="hint">Required — the admin sets this in the Admin panel.</p>
+        </div>
+        <button class="btn btn-p" style="width:100%;justify-content:center" onclick="doRegister()">Create Account →</button>
+        <p class="err" id="r-err"></p>
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- MAIN -->
+<!-- ══ MAIN ══ -->
 <div id="main-view" class="view">
-  <header class="header">
-    <div class="logo">Team<em>Vote</em></div>
-    <div class="header-right">
-      <div class="user-chip">
-        <div style="line-height:1.2">
-          <div id="hdr-name" class="uc-name"></div>
-          <div id="hdr-title" class="uc-title"></div>
+  <header class="hdr">
+    <div class="logo">Team<b>Vote</b></div>
+    <div class="hdr-r">
+      <div class="uchip">
+        <div style="line-height:1.25">
+          <div id="hn" class="uc-n"></div>
+          <div id="ht" class="uc-t"></div>
         </div>
-        <span id="hdr-role" class="role-pill member">Member</span>
+        <span id="hrole" class="rpill m">Member</span>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+      <button class="btn btn-q btn-sm" onclick="doLogout()">Sign out</button>
     </div>
   </header>
 
-  <div class="main-layout">
+  <div class="layout">
     <nav class="sidebar">
-      <div class="sb-label">Board</div>
-      <div class="nav-item active" data-tab="ideas" onclick="switchTab('ideas')">
-        <span class="nav-icon">💡</span> Ideas
-        <span class="nav-badge" id="nb-ideas">0</span>
+      <div class="sb-sec">Board</div>
+      <div class="nitem on" data-t="ideas" onclick="goTab('ideas')">
+        <span class="nicon">💡</span>Ideas
+        <span class="nbadge" id="nbi">0</span>
       </div>
-      <div class="nav-item" data-tab="post" onclick="switchTab('post')">
-        <span class="nav-icon">✏️</span> Post Idea
+      <div class="nitem" data-t="post" onclick="goTab('post')">
+        <span class="nicon">✏️</span>Post Idea
       </div>
-      <div class="sb-label">Account</div>
-      <div class="nav-item" data-tab="profile" onclick="switchTab('profile')">
-        <span class="nav-icon">👤</span> Profile
+      <div class="sb-sec">Account</div>
+      <div class="nitem" data-t="profile" onclick="goTab('profile')">
+        <span class="nicon">👤</span>Profile
       </div>
-      <div class="nav-item" id="admin-nav" data-tab="admin" onclick="switchTab('admin')" style="display:none">
-        <span class="nav-icon">⚙️</span> Admin
+      <div class="nitem" id="admin-nav" data-t="admin" onclick="goTab('admin')" style="display:none">
+        <span class="nicon">⚙️</span>Admin
       </div>
     </nav>
 
     <main class="content">
 
-      <!-- IDEAS TAB -->
-      <div id="tab-ideas" class="view active">
-        <div class="page-header">
-          <div class="ph-left">
-            <h1 class="display">All Ideas</h1>
-            <p>Vote on your team's ideas — you can't vote on your own.</p>
-          </div>
+      <!-- IDEAS -->
+      <div id="tab-ideas" class="view on">
+        <div class="ph">
+          <h1>All Ideas</h1>
+          <p>Vote on your team's ideas — you can't vote on your own.</p>
         </div>
-        <div id="stats-row" class="stats-row"></div>
-        <div id="ideas-list" class="ideas-grid"></div>
+        <div id="stats" class="stats"></div>
+        <div id="ilist" class="igrid"></div>
       </div>
 
-      <!-- POST TAB -->
+      <!-- POST -->
       <div id="tab-post" class="view">
-        <div class="page-header">
-          <div class="ph-left">
-            <h1 class="display">Post an Idea</h1>
-            <p>Share something worth exploring with the team.</p>
-          </div>
+        <div class="ph">
+          <h1>Post an Idea</h1>
+          <p>Share something worth exploring with the team.</p>
         </div>
-        <div class="form-card">
-          <div class="field">
+        <div class="fcard">
+          <div class="fld">
             <label>Title</label>
-            <input id="idea-title" type="text" placeholder="A clear, catchy title for your idea"/>
+            <input id="ititle" type="text" placeholder="A clear, catchy title for your idea"/>
           </div>
-          <div class="field">
+          <div class="fld">
             <label>Description</label>
-            <textarea id="idea-desc" placeholder="Describe your idea in detail. What problem does it solve?"></textarea>
+            <textarea id="idesc" placeholder="Describe your idea. What problem does it solve?"></textarea>
           </div>
-          <button class="btn btn-primary" onclick="postIdea()">Submit Idea →</button>
+          <button class="btn btn-p" onclick="postIdea()">Submit Idea →</button>
         </div>
       </div>
 
-      <!-- PROFILE TAB -->
+      <!-- PROFILE -->
       <div id="tab-profile" class="view">
-        <div class="page-header">
-          <div class="ph-left">
-            <h1 class="display">My Profile</h1>
-            <p>Manage how you appear to the team.</p>
-          </div>
+        <div class="ph">
+          <h1>My Profile</h1>
+          <p>Manage how you appear to the team.</p>
         </div>
-        <div id="profile-hero" class="profile-hero">
-          <div id="p-avatar" class="p-avatar">A</div>
+        <div class="phero">
+          <div id="pav" class="pav">A</div>
           <div>
-            <div id="p-name" class="p-name"></div>
-            <div id="p-title" class="p-title"></div>
+            <div id="pname" class="pname"></div>
+            <div id="ptitle" class="ptitle"></div>
           </div>
         </div>
-        <div class="form-card">
-          <div class="field">
+        <div class="fcard">
+          <div class="fld">
             <label>Username</label>
-            <input id="prof-username" type="text" disabled/>
+            <input id="puname" type="text" disabled/>
           </div>
-          <div class="field">
+          <div class="fld">
             <label>Your Title</label>
-            <input id="prof-title" type="text" placeholder="e.g. Product Designer"/>
+            <input id="ptitlein" type="text" placeholder="e.g. Product Designer"/>
           </div>
-          <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+          <div class="divider">Change Password</div>
+          <div class="fld">
+            <label>New Password</label>
+            <input id="pnewpass" type="password" placeholder="leave blank to keep current"/>
+          </div>
+          <button class="btn btn-p" onclick="saveProfile()">Save Changes</button>
         </div>
       </div>
 
-      <!-- ADMIN TAB -->
+      <!-- ADMIN -->
       <div id="tab-admin" class="view">
-        <div class="page-header">
-          <div class="ph-left">
-            <h1 class="display">Admin Panel</h1>
-            <p>Manage team members and the board.</p>
-          </div>
+        <div class="ph">
+          <h1>Admin Panel</h1>
+          <p>Manage team members and board settings.</p>
         </div>
 
-        <div class="admin-sec">
-          <div class="sec-title">👥 Team Members</div>
-          <div id="member-grid" class="member-grid"></div>
+        <div class="asec">
+          <div class="stitle">👥 Team Members</div>
+          <div id="mgrid" class="mgrid"></div>
         </div>
 
-        <div class="admin-sec">
-          <div class="sec-title">➕ Add Member</div>
-          <div class="add-form">
-            <div class="field"><label>Username</label><input id="new-uname" type="text" placeholder="username"/></div>
-            <div class="field"><label>Title</label><input id="new-title" type="text" placeholder="role / title"/></div>
-            <button class="btn btn-primary" style="height:42px" onclick="addMember()">Add</button>
-          </div>
-          <p style="color:var(--text3);font-size:12px;margin-top:10px;max-width:480px">Max 7 members total. Members without a title will be prompted on first login.</p>
-        </div>
-
-        <div class="admin-sec">
-          <div class="sec-title">⚠️ Danger Zone</div>
-          <div class="danger-zone">
-            <div class="dz-text">
-              <h4>Clear all ideas</h4>
-              <p>Permanently deletes every idea and all votes.</p>
+        <div class="asec">
+          <div class="stitle">🔑 Invite Code</div>
+          <div class="fcard" style="padding:18px 20px;max-width:480px">
+            <p style="font-size:13px;color:var(--t2);margin-bottom:12px">Share this code with people you want to allow to register.</p>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="invite-code-in" type="text" style="flex:1;background:var(--s2);border:1px solid var(--br);border-radius:9px;padding:9px 13px;color:var(--t1);font-family:'Instrument Sans',sans-serif;font-size:14px;outline:none" placeholder="set an invite code"/>
+              <button class="btn btn-p btn-sm" onclick="saveInviteCode()">Save</button>
             </div>
-            <button class="btn btn-danger btn-sm" onclick="confirmClearIdeas()">Clear All</button>
+            <p id="invite-current" style="font-size:12px;color:var(--t3);margin-top:8px"></p>
+          </div>
+        </div>
+
+        <div class="asec">
+          <div class="stitle">⚠️ Danger Zone</div>
+          <div class="dzone">
+            <div class="dzt">
+              <h4>Clear all ideas</h4>
+              <p>Permanently deletes every idea, vote, and comment.</p>
+            </div>
+            <button class="btn btn-d btn-sm" onclick="confirmClear()">Clear All</button>
           </div>
         </div>
       </div>
@@ -377,14 +421,14 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 </div>
 
 <!-- MODAL -->
-<div class="modal-overlay" id="modal">
+<div class="overlay" id="modal">
   <div class="modal">
-    <div class="modal-icon" id="modal-icon">⚠️</div>
-    <h3 id="modal-title">Confirm</h3>
-    <p id="modal-body">This cannot be undone.</p>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger" id="modal-confirm">Confirm</button>
+    <div class="modal-ico" id="mico">⚠️</div>
+    <h3 id="mtitle">Confirm</h3>
+    <p id="mbody">This cannot be undone.</p>
+    <div class="macts2">
+      <button class="btn btn-q btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-d btn-sm" id="mok">Confirm</button>
     </div>
   </div>
 </div>
@@ -393,252 +437,521 @@ body::before{content:'';position:fixed;width:500px;height:500px;background:radia
 </div><!-- /app -->
 
 <script>
-// ── STORE ──
-const S={get:k=>{try{return JSON.parse(localStorage.getItem('tv3_'+k))}catch{return null}},set:(k,v)=>localStorage.setItem('tv3_'+k,JSON.stringify(v)),del:k=>localStorage.removeItem('tv3_'+k)};
-const getMembers=()=>S.get('members')||[];const setMembers=m=>S.set('members',m);
-const getIdeas=()=>S.get('ideas')||[];const setIdeas=i=>S.set('ideas',i);
-const getSess=()=>S.get('sess');const setSess=s=>S.set('sess',s);const clrSess=()=>S.del('sess');
-function currentUser(){const s=getSess();return s?getMembers().find(m=>m.username===s.username)||null:null}
-function bootstrap(){if(!S.get('boot3')){setMembers([{username:'admin',title:'Project Admin',role:'admin'}]);S.set('boot3',1)}}
+// ══════════════════════════════════════════
+//  STORE  (localStorage, key prefix tv4_)
+// ══════════════════════════════════════════
+const K = 'tv4_';
+const S = {
+  get: k => { try { return JSON.parse(localStorage.getItem(K+k)); } catch { return null; } },
+  set: (k,v) => localStorage.setItem(K+k, JSON.stringify(v)),
+  del: k => localStorage.removeItem(K+k)
+};
 
-// ── AUTH ──
-let aMode='login',pUser='';
-function showAuth(){
-  document.getElementById('auth-view').classList.add('active');
-  document.getElementById('main-view').classList.remove('active');
-  document.getElementById('auth-error').textContent='';
-  document.getElementById('auth-username').value='';
-  document.getElementById('auth-title').value='';
-  document.getElementById('auth-title-wrap').style.display='none';
-  document.getElementById('auth-username').disabled=false;
-  document.getElementById('auth-subtitle').textContent='Enter your username to access the board.';
-  aMode='login';
+const getMembers = () => S.get('members') || [];
+const setMembers = m => S.set('members', m);
+const getIdeas   = () => S.get('ideas')   || [];
+const setIdeas   = i => S.set('ideas',    i);
+const getSess    = () => S.get('sess');
+const setSess    = s => S.set('sess',     s);
+const clrSess    = () => S.del('sess');
+const getInvite  = () => S.get('invite')  || '';
+const setInvite  = c => S.set('invite',   c);
+
+function currentUser() {
+  const s = getSess();
+  return s ? (getMembers().find(m => m.username === s.username) || null) : null;
 }
-function showMain(){
-  document.getElementById('auth-view').classList.remove('active');
-  document.getElementById('main-view').classList.add('active');
-  renderHeader();
-  const u=currentUser();
-  document.getElementById('admin-nav').style.display=u?.role==='admin'?'flex':'none';
-  switchTab('ideas');
+
+// Simple hash (not crypto — just obfuscation for localStorage)
+function hashPass(p) {
+  let h = 0;
+  for (let i = 0; i < p.length; i++) h = (Math.imul(31, h) + p.charCodeAt(i)) | 0;
+  return h.toString(16);
 }
-function authSubmit(){
-  const err=document.getElementById('auth-error');err.textContent='';
-  if(aMode==='login'){
-    const uname=document.getElementById('auth-username').value.trim().toLowerCase();
-    if(!uname){err.textContent='Please enter your username.';return}
-    const mem=getMembers().find(m=>m.username===uname);
-    if(!mem){err.textContent='Username not found. Ask your admin to add you.';return}
-    if(!mem.title){
-      pUser=uname;aMode='settitle';
-      document.getElementById('auth-subtitle').textContent=`Hey ${uname}! Set your display title to continue.`;
-      document.getElementById('auth-title-wrap').style.display='block';
-      document.getElementById('auth-username').disabled=true;return;
-    }
-    setSess({username:uname});showMain();
-  } else {
-    const title=document.getElementById('auth-title').value.trim();
-    if(!title){err.textContent='Please set a title.';return}
-    const members=getMembers();const idx=members.findIndex(m=>m.username===pUser);
-    members[idx].title=title;setMembers(members);setSess({username:pUser});showMain();
+
+function bootstrap() {
+  if (!S.get('boot4')) {
+    setMembers([{
+      username: 'admin',
+      passHash: hashPass('admin123'),
+      title: 'Project Admin',
+      role: 'admin'
+    }]);
+    setInvite('teamvote2025');
+    S.set('boot4', 1);
   }
 }
-function logout(){clrSess();showAuth()}
 
-// ── NAV ──
-function switchTab(tab){
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
-  document.querySelectorAll('#main-view .view').forEach(v=>v.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='ideas')renderIdeas();
-  if(tab==='admin')renderAdmin();
-  if(tab==='profile')renderProfile();
-}
-function renderHeader(){
-  const u=currentUser();if(!u)return;
-  document.getElementById('hdr-name').textContent=u.username;
-  document.getElementById('hdr-title').textContent=u.title||'';
-  const rp=document.getElementById('hdr-role');
-  rp.textContent=u.role==='admin'?'Admin':'Member';
-  rp.className='role-pill'+(u.role==='admin'?'':' member');
+// ══════════════════════════════════════════
+//  AUTH TABS
+// ══════════════════════════════════════════
+let authTab = 'login';
+function switchAuthTab(t) {
+  authTab = t;
+  document.getElementById('tab-login').className    = 'auth-tab' + (t==='login'    ? ' on' : '');
+  document.getElementById('tab-register').className = 'auth-tab' + (t==='register' ? ' on' : '');
+  document.getElementById('login-form').style.display    = t === 'login'    ? 'block' : 'none';
+  document.getElementById('register-form').style.display = t === 'register' ? 'block' : 'none';
+  document.getElementById('l-err').textContent = '';
+  document.getElementById('r-err').textContent = '';
 }
 
-// ── IDEAS ──
-function renderIdeas(){
-  const me=currentUser();
-  const ideas=getIdeas().slice().sort((a,b)=>b.votes.length-a.votes.length);
-  const cnt=document.getElementById('ideas-list');
-  const srow=document.getElementById('stats-row');
-  document.getElementById('nb-ideas').textContent=ideas.length;
+function showAuth() {
+  document.getElementById('auth-view').classList.add('on');
+  document.getElementById('main-view').classList.remove('on');
+  switchAuthTab('login');
+  document.getElementById('l-user').value = '';
+  document.getElementById('l-pass').value = '';
+}
 
-  const totalVotes=ideas.reduce((s,i)=>s+i.votes.length,0);
-  const myIdeas=ideas.filter(i=>i.author===me.username).length;
-  srow.innerHTML=`
-    <div class="stat-card"><span class="stat-icon">💡</span><div><div class="stat-val">${ideas.length}</div><div class="stat-key">Ideas</div></div></div>
-    <div class="stat-card"><span class="stat-icon">▲</span><div><div class="stat-val">${totalVotes}</div><div class="stat-key">Total votes</div></div></div>
-    <div class="stat-card"><span class="stat-icon">✍️</span><div><div class="stat-val">${myIdeas}</div><div class="stat-key">Your ideas</div></div></div>`;
+function showMain() {
+  document.getElementById('auth-view').classList.remove('on');
+  document.getElementById('main-view').classList.add('on');
+  renderHeader();
+  const u = currentUser();
+  document.getElementById('admin-nav').style.display = u?.role === 'admin' ? 'flex' : 'none';
+  goTab('ideas');
+}
 
-  if(!ideas.length){
-    cnt.innerHTML=`<div class="empty-state"><div class="empty-icon">💭</div><h3>No ideas yet</h3><p>Be the first to post an idea for the team to vote on.</p><button class="btn btn-primary" style="margin-top:4px" onclick="switchTab('post')">Post the first idea →</button></div>`;
+function doLogin() {
+  const err = document.getElementById('l-err');
+  err.textContent = '';
+  const uname = document.getElementById('l-user').value.trim().toLowerCase();
+  const pass  = document.getElementById('l-pass').value;
+  if (!uname || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  const mem = getMembers().find(m => m.username === uname);
+  if (!mem) { err.textContent = 'Username not found.'; return; }
+  if (mem.passHash !== hashPass(pass)) { err.textContent = 'Incorrect password.'; return; }
+  setSess({ username: uname });
+  showMain();
+}
+
+function doRegister() {
+  const err = document.getElementById('r-err');
+  err.textContent = '';
+  const uname = document.getElementById('r-user').value.trim().toLowerCase();
+  const pass  = document.getElementById('r-pass').value;
+  const title = document.getElementById('r-title').value.trim();
+  const code  = document.getElementById('r-code').value.trim();
+  if (!uname || !pass || !title || !code) { err.textContent = 'Please fill in all fields.'; return; }
+  if (pass.length < 4) { err.textContent = 'Password must be at least 4 characters.'; return; }
+  if (code !== getInvite()) { err.textContent = 'Invalid invite code.'; return; }
+  const members = getMembers();
+  if (members.length >= 7) { err.textContent = 'Team is full (max 7 members).'; return; }
+  if (members.find(m => m.username === uname)) { err.textContent = 'Username already taken.'; return; }
+  if (!/^[a-z0-9_]+$/.test(uname)) { err.textContent = 'Username: only letters, numbers, underscores.'; return; }
+  members.push({ username: uname, passHash: hashPass(pass), title, role: 'member' });
+  setMembers(members);
+  setSess({ username: uname });
+  showMain();
+  toast('Account created! Welcome 🎉', 'ok');
+}
+
+function doLogout() { clrSess(); showAuth(); }
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function goTab(tab) {
+  document.querySelectorAll('.nitem').forEach(n => n.classList.remove('on'));
+  document.querySelector(`[data-t="${tab}"]`)?.classList.add('on');
+  document.querySelectorAll('#main-view .view').forEach(v => v.classList.remove('on'));
+  document.getElementById('tab-' + tab).classList.add('on');
+  if (tab === 'ideas')   renderIdeas();
+  if (tab === 'admin')   renderAdmin();
+  if (tab === 'profile') renderProfile();
+}
+
+function renderHeader() {
+  const u = currentUser(); if (!u) return;
+  document.getElementById('hn').textContent = u.username;
+  document.getElementById('ht').textContent = u.title || '';
+  const rp = document.getElementById('hrole');
+  rp.textContent = u.role === 'admin' ? 'Admin' : 'Member';
+  rp.className = 'rpill' + (u.role === 'admin' ? '' : ' m');
+}
+
+// ══════════════════════════════════════════
+//  IDEAS
+// ══════════════════════════════════════════
+function renderIdeas() {
+  const me    = currentUser();
+  const ideas = getIdeas().slice().sort((a,b) => b.votes.length - a.votes.length);
+  const topV  = ideas[0]?.votes.length || 0;
+
+  document.getElementById('nbi').textContent = ideas.length;
+
+  // stats
+  const totalVotes = ideas.reduce((s,i) => s + i.votes.length, 0);
+  const totalFb    = ideas.reduce((s,i) => s + (i.feedback||[]).length, 0);
+  const myIdeas    = ideas.filter(i => i.author === me.username).length;
+  document.getElementById('stats').innerHTML = `
+    <div class="scard"><span class="si">💡</span><div><div class="sv">${ideas.length}</div><div class="sk">Ideas</div></div></div>
+    <div class="scard"><span class="si">▲</span><div><div class="sv">${totalVotes}</div><div class="sk">Votes</div></div></div>
+    <div class="scard"><span class="si">💬</span><div><div class="sv">${totalFb}</div><div class="sk">Comments</div></div></div>
+    <div class="scard"><span class="si">✍️</span><div><div class="sv">${myIdeas}</div><div class="sk">Yours</div></div></div>`;
+
+  if (!ideas.length) {
+    document.getElementById('ilist').innerHTML = `
+      <div class="empty">
+        <div class="eicon">💭</div>
+        <h3>No ideas yet</h3>
+        <p>Be the first to post an idea for the team.</p>
+        <button class="btn btn-p" style="margin-top:4px" onclick="goTab('post')">Post the first idea →</button>
+      </div>`;
     return;
   }
-  const topVotes=ideas[0]?.votes.length||0;
-  cnt.innerHTML=ideas.map((idea,i)=>{
-    const isOwn=idea.author===me.username;
-    const voted=idea.votes.includes(me.username);
-    const aMem=getMembers().find(m=>m.username===idea.author);
-    const aTitle=aMem?.title||'';
-    const init=idea.author.charAt(0).toUpperCase();
-    const date=new Date(idea.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-    const isTop=idea.votes.length>0&&idea.votes.length===topVotes;
+
+  document.getElementById('ilist').innerHTML = ideas.map((idea, idx) => {
+    const isOwn  = idea.author === me.username;
+    const voted  = idea.votes.includes(me.username);
+    const isTop  = idea.votes.length > 0 && idea.votes.length === topV;
+    const aMem   = getMembers().find(m => m.username === idea.author);
+    const aTitle = aMem?.title || '';
+    const init   = idea.author.charAt(0).toUpperCase();
+    const date   = new Date(idea.createdAt).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    const fbList = idea.feedback || [];
+
     return `
-    <div class="idea-card${isTop?' top':''}" style="animation-delay:${i*25}ms">
-      <div class="vote-col${voted?' voted':''}${isOwn?' own':' clickable'}"
-        onclick="${isOwn?'':''}"
-        ${isOwn?'title="You cannot vote on your own idea"':''}
-        id="vc-${idea.id}">
-        <span class="v-arrow">▲</span>
-        <span class="v-num">${idea.votes.length}</span>
-        <span class="v-lbl">votes</span>
+    <div class="icard${isTop?' top-card':''}" id="ic-${idea.id}" style="animation-delay:${idx*20}ms">
+      <div class="vcol${voted?' voted':''}${isOwn?' own':''}" onclick="${isOwn?'':``toggleVote('${idea.id}')``}" title="${isOwn?'Cannot vote on your own idea':voted?'Remove vote':'Vote for this idea'}">
+        <span class="varrow">▲</span>
+        <span class="vnum">${idea.votes.length}</span>
+        <span class="vlbl">votes</span>
       </div>
-      <div class="idea-body">
-        <div class="idea-top">
-          <div class="idea-title">${escHtml(idea.title)}</div>
-          ${(isOwn||me.role==='admin')?`<button class="btn-icon" onclick="confirmDeleteIdea('${idea.id}')" title="Delete">🗑</button>`:''}
-        </div>
-        <div class="idea-desc">${escHtml(idea.description)}</div>
-        <div class="idea-foot">
-          <div class="author-chip">
-            <div class="a-av">${init}</div>
-            <span class="a-name">${escHtml(idea.author)}</span>
-            ${aTitle?`<span class="a-role">· ${escHtml(aTitle)}</span>`:''}
+      <div class="ibody">
+        <div class="itop">
+          <div class="ititle" id="ititle-${idea.id}">${esc(idea.title)}</div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            ${isOwn ? `<button class="ibtn edit" onclick="toggleEdit('${idea.id}')" title="Edit idea">✏️</button>` : ''}
+            ${(isOwn || me.role==='admin') ? `<button class="ibtn" onclick="confirmDel('${idea.id}')" title="Delete">🗑</button>` : ''}
           </div>
-          <span class="idea-date">${date}</span>
-          ${isOwn?'<span class="own-tag">your idea</span>':''}
-          ${isTop&&idea.votes.length>0?'<span class="top-tag">🏆 Top Idea</span>':''}
         </div>
-        ${idea.votes.length?`<div class="voters-row"><span class="voters-lbl">Voted by:</span>${idea.votes.map(v=>`<span class="voter-chip">${escHtml(v)}</span>`).join('')}</div>`:''}
+        <div class="idesc" id="idesc-${idea.id}">${esc(idea.description)}</div>
+
+        <!-- inline edit box (hidden by default) -->
+        <div class="edit-box" id="editbox-${idea.id}" style="display:none">
+          <input id="ei-title-${idea.id}" type="text" value="${esc(idea.title)}" placeholder="Title"/>
+          <textarea id="ei-desc-${idea.id}" placeholder="Description">${esc(idea.description)}</textarea>
+          <div class="edit-actions">
+            <button class="btn btn-p btn-xs" onclick="saveEdit('${idea.id}')">Save</button>
+            <button class="btn btn-q btn-xs" onclick="toggleEdit('${idea.id}')">Cancel</button>
+          </div>
+        </div>
+
+        <div class="ifoot">
+          <div class="achip">
+            <div class="aav">${init}</div>
+            <span class="aname">${esc(idea.author)}</span>
+            ${aTitle ? `<span class="arole">· ${esc(aTitle)}</span>` : ''}
+          </div>
+          <span class="idate">${date}</span>
+          ${isOwn ? '<span class="own-tag">your idea</span>' : ''}
+          ${isTop && idea.votes.length > 0 ? '<span class="top-tag">🏆 Top</span>' : ''}
+        </div>
+
+        ${idea.votes.length ? `
+        <div class="voters">
+          <span class="vlbl2">Voted by:</span>
+          ${idea.votes.map(v => `<span class="vchip">${esc(v)}</span>`).join('')}
+        </div>` : ''}
+
+        <!-- FEEDBACK SECTION -->
+        <div class="feedback-section">
+          <button class="fb-toggle${fbList.length?' has-fb':''}" onclick="toggleFb('${idea.id}')">
+            💬 Feedback
+            <span class="fb-count">${fbList.length}</span>
+          </button>
+          <div class="fb-body" id="fb-${idea.id}">
+            <div class="fb-list" id="fbl-${idea.id}">
+              ${fbList.map(fb => renderFbItem(fb, idea.id, me)).join('')}
+            </div>
+            <div class="fb-input-row">
+              <textarea id="fbin-${idea.id}" placeholder="Add a comment…" onkeydown="fbKeydown(event,'${idea.id}')"></textarea>
+              <button class="btn btn-b btn-sm" onclick="addFeedback('${idea.id}')">Post</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>`;
   }).join('');
 
-  // attach vote listeners separately to avoid inline onclick issues
-  ideas.forEach(idea=>{
-    const vc=document.getElementById('vc-'+idea.id);
-    if(vc&&vc.classList.contains('clickable')){
-      vc.addEventListener('click',()=>toggleVote(idea.id));
+  // attach vote click listeners (avoids inline onclick escaping issues)
+  ideas.forEach(idea => {
+    const vc = document.querySelector(`#ic-${idea.id} .vcol`);
+    if (vc && !vc.classList.contains('own')) {
+      vc.onclick = () => toggleVote(idea.id);
     }
   });
 }
 
-function postIdea(){
-  const title=document.getElementById('idea-title').value.trim();
-  const desc=document.getElementById('idea-desc').value.trim();
-  if(!title){toast('Please add a title.','err');return}
-  if(!desc){toast('Please add a description.','err');return}
-  const me=currentUser();
-  const ideas=getIdeas();
-  ideas.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title,description:desc,author:me.username,votes:[],createdAt:Date.now()});
+function renderFbItem(fb, ideaId, me) {
+  const aMem  = getMembers().find(m => m.username === fb.author);
+  const aRole = aMem?.title || '';
+  const init  = fb.author.charAt(0).toUpperCase();
+  const date  = new Date(fb.createdAt).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  const canDel = fb.author === me.username || me.role === 'admin';
+  return `
+  <div class="fb-item" id="fb-item-${fb.id}">
+    <div class="fb-item-head">
+      <div class="fb-av">${init}</div>
+      <span class="fb-author">${esc(fb.author)}</span>
+      ${aRole ? `<span class="fb-role">· ${esc(aRole)}</span>` : ''}
+      <span class="fb-date">${date}</span>
+    </div>
+    <div class="fb-text">${esc(fb.text)}</div>
+    ${canDel ? `<button class="ibtn fb-del" onclick="deleteFb('${ideaId}','${fb.id}')" title="Delete comment">🗑</button>` : ''}
+  </div>`;
+}
+
+// ── Vote ──
+function toggleVote(ideaId) {
+  const me = currentUser();
+  const ideas = getIdeas();
+  const idea  = ideas.find(i => i.id === ideaId);
+  if (!idea) return;
+  if (idea.author === me.username) { toast("Can't vote on your own idea.", 'er'); return; }
+  const idx = idea.votes.indexOf(me.username);
+  if (idx === -1) { idea.votes.push(me.username); toast('Vote cast! ▲', 'ok'); }
+  else            { idea.votes.splice(idx, 1);    toast('Vote removed.', ''); }
+  setIdeas(ideas); renderIdeas();
+}
+
+// ── Post idea ──
+function postIdea() {
+  const title = document.getElementById('ititle').value.trim();
+  const desc  = document.getElementById('idesc').value.trim();
+  if (!title) { toast('Please add a title.', 'er'); return; }
+  if (!desc)  { toast('Please add a description.', 'er'); return; }
+  const me    = currentUser();
+  const ideas = getIdeas();
+  ideas.push({
+    id: uid(), title, description: desc,
+    author: me.username, votes: [], feedback: [], createdAt: Date.now()
+  });
   setIdeas(ideas);
-  document.getElementById('idea-title').value='';
-  document.getElementById('idea-desc').value='';
-  toast('Idea posted! 🎉','ok');switchTab('ideas');
+  document.getElementById('ititle').value = '';
+  document.getElementById('idesc').value  = '';
+  toast('Idea posted! 🎉', 'ok'); goTab('ideas');
 }
 
-function toggleVote(ideaId){
-  const me=currentUser();const ideas=getIdeas();
-  const idea=ideas.find(i=>i.id===ideaId);if(!idea)return;
-  if(idea.author===me.username){toast("You can't vote on your own idea.",'err');return}
-  const idx=idea.votes.indexOf(me.username);
-  if(idx===-1){idea.votes.push(me.username);toast('Vote cast! ▲','ok')}
-  else{idea.votes.splice(idx,1);toast('Vote removed.','')}
-  setIdeas(ideas);renderIdeas();
+// ── Delete idea ──
+function confirmDel(id) {
+  showModal('🗑️', 'Delete this idea?', 'This will permanently remove the idea, votes, and all comments.', () => {
+    setIdeas(getIdeas().filter(i => i.id !== id));
+    renderIdeas(); closeModal(); toast('Idea deleted.', '');
+  });
 }
 
-function confirmDeleteIdea(id){showModal('🗑️','Delete this idea?','This will permanently remove the idea and all its votes.',()=>{deleteIdea(id);closeModal()})}
-function deleteIdea(id){setIdeas(getIdeas().filter(i=>i.id!==id));renderIdeas();toast('Idea deleted.','')}
-function confirmClearIdeas(){showModal('⚠️','Clear ALL ideas?','Every idea and vote will be permanently deleted.',()=>{setIdeas([]);renderIdeas();closeModal();toast('All ideas cleared.','')})}
-
-// ── PROFILE ──
-function renderProfile(){
-  const u=currentUser();
-  document.getElementById('prof-username').value=u.username;
-  document.getElementById('prof-title').value=u.title||'';
-  document.getElementById('p-avatar').textContent=u.username.charAt(0).toUpperCase();
-  document.getElementById('p-name').textContent=u.username;
-  document.getElementById('p-title').textContent=u.title||'No title set';
-}
-function saveProfile(){
-  const title=document.getElementById('prof-title').value.trim();
-  if(!title){toast('Title cannot be empty.','err');return}
-  const members=getMembers();const me=currentUser();
-  const idx=members.findIndex(m=>m.username===me.username);
-  members[idx].title=title;setMembers(members);renderHeader();renderProfile();
-  toast('Profile updated ✓','ok');
+// ── Edit idea ──
+function toggleEdit(ideaId) {
+  const box = document.getElementById('editbox-' + ideaId);
+  const isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    const idea = getIdeas().find(i => i.id === ideaId);
+    document.getElementById('ei-title-' + ideaId).value = idea.title;
+    document.getElementById('ei-desc-'  + ideaId).value = idea.description;
+  }
 }
 
-// ── ADMIN ──
-const EMOJIS=['🧑‍💻','👩‍🎨','🧑‍🔬','👨‍💼','🧑‍🚀','👩‍💻','🧑‍🎤'];
-function renderAdmin(){
-  const me=currentUser();if(me?.role!=='admin')return;
-  const members=getMembers();
-  document.getElementById('member-grid').innerHTML=members.map((m,i)=>`
-    <div class="member-card">
-      <div class="mem-av">${EMOJIS[i%EMOJIS.length]}</div>
-      <div class="mem-info">
-        <div class="mem-name">${escHtml(m.username)}${m.role==='admin'?'<span class="admin-star">Admin</span>':''}</div>
-        <div class="mem-title-d">${escHtml(m.title||'No title yet')}</div>
+function saveEdit(ideaId) {
+  const newTitle = document.getElementById('ei-title-' + ideaId).value.trim();
+  const newDesc  = document.getElementById('ei-desc-'  + ideaId).value.trim();
+  if (!newTitle) { toast('Title cannot be empty.', 'er'); return; }
+  if (!newDesc)  { toast('Description cannot be empty.', 'er'); return; }
+  const ideas = getIdeas();
+  const idea  = ideas.find(i => i.id === ideaId);
+  idea.title       = newTitle;
+  idea.description = newDesc;
+  idea.edited      = Date.now();
+  setIdeas(ideas);
+  // patch DOM without full re-render
+  document.getElementById('ititle-' + ideaId).textContent = newTitle;
+  document.getElementById('idesc-'  + ideaId).textContent = newDesc;
+  document.getElementById('editbox-' + ideaId).style.display = 'none';
+  toast('Idea updated ✓', 'ok');
+}
+
+// ── Feedback ──
+function toggleFb(ideaId) {
+  const body = document.getElementById('fb-' + ideaId);
+  body.classList.toggle('open');
+}
+
+function fbKeydown(e, ideaId) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFeedback(ideaId); }
+}
+
+function addFeedback(ideaId) {
+  const ta   = document.getElementById('fbin-' + ideaId);
+  const text = ta.value.trim();
+  if (!text) return;
+  const me    = currentUser();
+  const ideas = getIdeas();
+  const idea  = ideas.find(i => i.id === ideaId);
+  if (!idea.feedback) idea.feedback = [];
+  idea.feedback.push({ id: uid(), author: me.username, text, createdAt: Date.now() });
+  setIdeas(ideas);
+  ta.value = '';
+  // re-render just the feedback list
+  const fbl = document.getElementById('fbl-' + ideaId);
+  fbl.innerHTML = idea.feedback.map(fb => renderFbItem(fb, ideaId, me)).join('');
+  // update toggle count
+  const tog = document.querySelector(`#ic-${ideaId} .fb-toggle .fb-count`);
+  if (tog) { tog.textContent = idea.feedback.length; tog.closest('.fb-toggle').classList.add('has-fb'); }
+  toast('Comment added.', 'ok');
+}
+
+function deleteFb(ideaId, fbId) {
+  const ideas = getIdeas();
+  const idea  = ideas.find(i => i.id === ideaId);
+  idea.feedback = idea.feedback.filter(f => f.id !== fbId);
+  setIdeas(ideas);
+  const el = document.getElementById('fb-item-' + fbId);
+  if (el) el.remove();
+  const tog = document.querySelector(`#ic-${ideaId} .fb-toggle .fb-count`);
+  if (tog) { tog.textContent = idea.feedback.length; if (!idea.feedback.length) tog.closest('.fb-toggle').classList.remove('has-fb'); }
+  toast('Comment deleted.', '');
+}
+
+function confirmClear() {
+  showModal('⚠️', 'Clear ALL ideas?', 'Every idea, vote, and comment will be permanently deleted.', () => {
+    setIdeas([]); renderIdeas(); closeModal(); toast('All ideas cleared.', '');
+  });
+}
+
+// ══════════════════════════════════════════
+//  PROFILE
+// ══════════════════════════════════════════
+function renderProfile() {
+  const u = currentUser();
+  document.getElementById('puname').value    = u.username;
+  document.getElementById('ptitlein').value  = u.title || '';
+  document.getElementById('pnewpass').value  = '';
+  document.getElementById('pav').textContent = u.username.charAt(0).toUpperCase();
+  document.getElementById('pname').textContent  = u.username;
+  document.getElementById('ptitle').textContent = u.title || 'No title set';
+}
+
+function saveProfile() {
+  const title   = document.getElementById('ptitlein').value.trim();
+  const newpass = document.getElementById('pnewpass').value;
+  if (!title) { toast('Title cannot be empty.', 'er'); return; }
+  if (newpass && newpass.length < 4) { toast('Password must be at least 4 characters.', 'er'); return; }
+  const members = getMembers();
+  const me      = currentUser();
+  const idx     = members.findIndex(m => m.username === me.username);
+  members[idx].title = title;
+  if (newpass) members[idx].passHash = hashPass(newpass);
+  setMembers(members);
+  renderHeader(); renderProfile();
+  toast('Profile updated ✓', 'ok');
+}
+
+// ══════════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════════
+const EMOJIS = ['🧑‍💻','👩‍🎨','🧑‍🔬','👨‍💼','🧑‍🚀','👩‍💻','🧑‍🎤'];
+
+function renderAdmin() {
+  const me      = currentUser(); if (me?.role !== 'admin') return;
+  const members = getMembers();
+
+  document.getElementById('mgrid').innerHTML = members.map((m, i) => `
+    <div class="mcard">
+      <div class="mav">${EMOJIS[i % EMOJIS.length]}</div>
+      <div class="minfo">
+        <div class="mname">${esc(m.username)} ${m.role==='admin' ? '<span class="adstar">Admin</span>' : ''}</div>
+        <div class="mtitle">${esc(m.title || 'No title')}</div>
       </div>
-      <div class="mem-actions">
-        ${m.username!==me.username?`
-          ${m.role!=='admin'?`<button class="btn btn-ghost btn-xs" onclick="confirmMakeAdmin('${m.username}')">Make Admin</button>`:''}
-          <button class="btn btn-danger btn-xs" onclick="confirmRemoveMember('${m.username}')">Remove</button>
-        `:'<span style="font-size:11px;color:var(--text3)">You</span>'}
+      <div class="macts">
+        ${m.username !== me.username ? `
+          ${m.role !== 'admin' ? `<button class="btn btn-q btn-xs" onclick="confirmMakeAdmin('${m.username}')">Make Admin</button>` : ''}
+          <button class="btn btn-d btn-xs" onclick="confirmRemove('${m.username}')">Remove</button>
+        ` : '<span style="font-size:11px;color:var(--t3)">You</span>'}
       </div>
     </div>`).join('');
-}
-function addMember(){
-  const username=document.getElementById('new-uname').value.trim().toLowerCase();
-  const title=document.getElementById('new-title').value.trim();
-  if(!username){toast('Enter a username.','err');return}
-  const members=getMembers();
-  if(members.length>=7){toast('Max 7 members reached!','err');return}
-  if(members.find(m=>m.username===username)){toast('Username already exists.','err');return}
-  members.push({username,title:title||'',role:'member'});setMembers(members);
-  document.getElementById('new-uname').value='';document.getElementById('new-title').value='';
-  renderAdmin();toast(`${username} added ✓`,'ok');
-}
-function confirmMakeAdmin(u){showModal('⭐',`Transfer admin to ${u}?`,`You will become a regular member and ${u} will become the new admin.`,()=>{makeAdmin(u);closeModal()})}
-function makeAdmin(username){
-  const members=getMembers();const me=currentUser();
-  members.forEach(m=>{if(m.username===me.username)m.role='member';if(m.username===username)m.role='admin'});
-  setMembers(members);renderHeader();
-  document.getElementById('admin-nav').style.display='none';
-  switchTab('ideas');toast(`${username} is now Admin.`,'ok');
-}
-function confirmRemoveMember(u){showModal('🗑️',`Remove ${u}?`,'They will lose access. Their ideas and votes remain.',()=>{setMembers(getMembers().filter(m=>m.username!==u));renderAdmin();closeModal();toast(`${u} removed.`,'')})}
 
-// ── UTILS ──
-const escHtml=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // invite code
+  const code = getInvite();
+  document.getElementById('invite-code-in').value   = code;
+  document.getElementById('invite-current').textContent = code ? `Current code: "${code}"` : 'No code set yet.';
+}
+
+function saveInviteCode() {
+  const code = document.getElementById('invite-code-in').value.trim();
+  if (!code) { toast('Enter a code.', 'er'); return; }
+  setInvite(code);
+  document.getElementById('invite-current').textContent = `Current code: "${code}"`;
+  toast('Invite code saved ✓', 'ok');
+}
+
+function confirmMakeAdmin(username) {
+  showModal('⭐', `Transfer admin to ${username}?`, `You will become a regular member and ${username} will be the new admin.`, () => {
+    const members = getMembers();
+    const me      = currentUser();
+    members.forEach(m => {
+      if (m.username === me.username) m.role = 'member';
+      if (m.username === username)   m.role = 'admin';
+    });
+    setMembers(members);
+    renderHeader();
+    document.getElementById('admin-nav').style.display = 'none';
+    closeModal(); goTab('ideas');
+    toast(`${username} is now Admin.`, 'ok');
+  });
+}
+
+function confirmRemove(username) {
+  showModal('🗑️', `Remove ${username}?`, 'They will lose access. Their ideas and comments remain.', () => {
+    setMembers(getMembers().filter(m => m.username !== username));
+    renderAdmin(); closeModal(); toast(`${username} removed.`, '');
+  });
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+const esc = s => String(s)
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+  .replace(/\n/g,'<br>');
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
 let _tt;
-function toast(msg,type=''){const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;clearTimeout(_tt);_tt=setTimeout(()=>el.className='',2800)}
-function showModal(icon,title,body,onConfirm){
-  document.getElementById('modal-icon').textContent=icon;
-  document.getElementById('modal-title').textContent=title;
-  document.getElementById('modal-body').textContent=body;
-  document.getElementById('modal-confirm').onclick=onConfirm;
-  document.getElementById('modal').classList.add('open');
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'on ' + type;
+  clearTimeout(_tt); _tt = setTimeout(() => el.className = '', 2600);
 }
-function closeModal(){document.getElementById('modal').classList.remove('open')}
 
-// ── INIT ──
+function showModal(icon, title, body, onOk) {
+  document.getElementById('mico').textContent   = icon;
+  document.getElementById('mtitle').textContent = title;
+  document.getElementById('mbody').textContent  = body;
+  document.getElementById('mok').onclick        = onOk;
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal() { document.getElementById('modal').classList.remove('on'); }
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
 bootstrap();
-const s=getSess();
-if(s&&getMembers().find(m=>m.username===s.username))showMain();
-else{clrSess();showAuth()}
-document.getElementById('auth-username').addEventListener('keydown',e=>e.key==='Enter'&&authSubmit());
-document.getElementById('auth-title').addEventListener('keydown',e=>e.key==='Enter'&&authSubmit());
+const s = getSess();
+if (s && getMembers().find(m => m.username === s.username)) showMain();
+else { clrSess(); showAuth(); }
+
+// Enter key shortcuts
+['l-user','l-pass'].forEach(id =>
+  document.getElementById(id)?.addEventListener('keydown', e => e.key==='Enter' && doLogin()));
+['r-user','r-pass','r-title','r-code'].forEach(id =>
+  document.getElementById(id)?.addEventListener('keydown', e => e.key==='Enter' && doRegister()));
+['ititle'].forEach(id =>
+  document.getElementById(id)?.addEventListener('keydown', e => e.key==='Enter' && document.getElementById('idesc').focus()));
 </script>
 </body>
 </html>
